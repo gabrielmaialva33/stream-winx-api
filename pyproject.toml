@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "stream-winx-api"
+version = "0.1.0"
+description = "An open-source API for index and stream movies and series using CineWinx channel."
+authors = ["Gabriel Maia <gabrielmaialva33@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.13"
+fastapi = "^0.115.5"
+uvicorn = "^0.32.1"
+telethon = "^1.38.1"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.10.0"
+pytest = "^8.3.4"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
