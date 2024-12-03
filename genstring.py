@@ -7,7 +7,7 @@ from telethon.sync import TelegramClient
 
 def install_telethon():
     try:
-        from telethon import TelegramClient
+        pass
     except ImportError:
         os.system("pip install telethon")
         print("\nTelethon installed successfully!")

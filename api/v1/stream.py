@@ -9,7 +9,7 @@ router = APIRouter()
 
 @router.get("/stream")
 async def stream_file(
-        range_header: str | None = Header(None, alias="range"),
+    range_header: str | None = Header(None, alias="range"),
 ):
     try:
         document = await telegram.get_file_info()

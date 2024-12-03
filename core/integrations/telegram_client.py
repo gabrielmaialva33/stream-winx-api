@@ -6,6 +6,7 @@ from core.logging import logger
 
 # client = TelegramClient('stream_session', API_ID, API_HASH)
 
+
 # async def start_client():
 #     logger(__name__).info("Starting Telegram client")
 #     await client.start(bot_token=BOT_TOKEN)
@@ -16,7 +17,7 @@ from core.logging import logger
 #     await client.disconnect()
 class Telegram:
     def __init__(self):
-        self.client = TelegramClient('stream_session', API_ID, API_HASH)
+        self.client = TelegramClient("stream_session", API_ID, API_HASH)
 
     async def start(self):
         logger(__name__).info("Starting Telegram client")
@@ -42,9 +43,9 @@ class Telegram:
 
     async def get_file_stream(self, document, start: int, end: int):
         async for chunk in self.client.iter_download(
-                document,
-                offset=start,
-                limit=end - start + 1,
-                chunk_size=1024 * 1024,  # Tamanho do chunk: 1MB
+            document,
+            offset=start,
+            limit=end - start + 1,
+            chunk_size=1024 * 1024,  # Tamanho do chunk: 1MB
         ):
             yield chunk
