@@ -5,29 +5,27 @@ on:
       - "**.py"
   workflow_dispatch:
 jobs:
-  PEP8:
+  lint:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ "3.8", "3.9", "3.10" ]
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup Python
-        uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v3
         with:
-          python-version: "3.13.x"
-      - name: Install libraries
-        run: pip install autopep8 autoflake isort black
-      - name: Check for showstoppers
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
         run: |
-          autopep8 --verbose --in-place --recursive --aggressive *.py
-      - name: Remove unused imports
+          python -m pip install --upgrade pip
+          pip install pylint
+      - name: Run Pylint
         run: |
-          autoflake --in-place --recursive --remove-all-unused-imports --ignore-init-module-imports .
-
-      - name: lint with black
-        run: |
-          black .
+          pylint $(git ls-files '*.py')
       - uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          commit_message: 'chore: apply pylint fixes'
+          commit_message: 'chore: lint fixes'
           commit_options: '--no-verify'
           repository: .
           commit_user_name: gabrielmaialva33
