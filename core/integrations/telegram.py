@@ -1,18 +1,18 @@
 from telethon import TelegramClient
 
-from core import API_ID, API_HASH, BOT_TOKEN, logger
+from core import API_ID, API_HASH, STRING_SESSION, logger
+from core.utils import decode_session
 
-
-# from core.logging import logger
+telethon_session = decode_session(STRING_SESSION)
 
 
 class Telegram:
     def __init__(self):
-        self.client = TelegramClient("stream_session", API_ID, API_HASH)
+        self.client = TelegramClient(telethon_session, API_ID, API_HASH)
 
     async def start(self):
         logger.info("Starting Telegram client")
-        await self.client.start(bot_token=BOT_TOKEN)
+        await self.client.start()
 
     async def stop(self):
         logger.info("Stopping Telegram client")
