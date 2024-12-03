@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.params import Header
 from fastapi.responses import StreamingResponse
 
-from app.services.streaming import get_file_info, get_file_stream
+from core.integrations import telegram
 
 router = APIRouter()
 
@@ -12,12 +12,12 @@ async def stream_file(
         range_header: str | None = Header(None, alias="range"),
 ):
     try:
-        document = await get_file_info()
+        document = await telegram.get_file_info()
         size = document.size
 
         if not range_header:
             return StreamingResponse(
-                get_file_stream(document, 0, size - 1),
+                telegram.get_file_stream(document, 0, size - 1),
                 media_type="video/mp4",
                 headers={
                     "Content-Type": "video/mp4",
@@ -31,8 +31,9 @@ async def stream_file(
         end = int(range_match[1]) if range_match[1] else size - 1
         chunk_size = end - start + 1
 
+        stream = telegram.get_file_stream(document, start, end)
         return StreamingResponse(
-            get_file_stream(document, start, end),
+            stream,
             media_type="video/mp4",
             status_code=206,
             headers={
