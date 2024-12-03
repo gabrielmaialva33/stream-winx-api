@@ -34,9 +34,6 @@ class Telegram:
 
     async def get_file_stream(self, document, start: int, end: int):
         async for chunk in self.client.iter_download(
-                document,
-                offset=start,
-                limit=end - start + 1,
-                chunk_size=1024 * 1024
+            document, offset=start, limit=end - start + 1, chunk_size=1024 * 1024
         ):
             yield chunk
