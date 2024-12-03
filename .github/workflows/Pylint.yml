@@ -1,8 +1,8 @@
 name: PyLint
 on:
   push:
-    paths:
-      - "**.py"
+    branches:
+      - main
   workflow_dispatch:
 jobs:
   lint:
