@@ -6,7 +6,7 @@ client = TelegramClient('stream_session', API_ID, API_HASH)
 
 
 async def start_client():
-    client.start(bot_token=BOT_TOKEN)
+    await client.start(bot_token=BOT_TOKEN)
 
 
 async def stop_client():
