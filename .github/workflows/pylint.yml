@@ -1,36 +1,31 @@
 name: PyLint
-
 on:
   push:
     paths:
       - "**.py"
   workflow_dispatch:
-
 jobs:
-  lint:
+  PEP8:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [ "3.8", "3.9", "3.10", "3.11" , "3.12" , "3.13" ]
     steps:
       - uses: actions/checkout@v3
-
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install dependencies
+          python-version: "3.12.x"
+      - name: Install libraries
+        run: pip install autopep8 autoflake isort black
+      - name: Check for showstoppers
         run: |
-          python -m pip install --upgrade pip
-          pip install pylint
-
-      - name: Analysing the code with pylint
+          autopep8 --verbose --in-place --recursive --aggressive *.py
+      - name: Remove unused imports
         run: |
-          pylint $(git ls-files '*.py')
+          autoflake --in-place --recursive --remove-all-unused-imports --ignore-init-module-imports .
 
-      - name: Commit changes if any fixes were made
-        uses: stefanzweifel/git-auto-commit-action@v4
+      - name: lint with black
+        run: |
+          black .
+      - uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: 'chore: apply pylint fixes'
           commit_options: '--no-verify'
