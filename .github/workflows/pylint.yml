@@ -32,4 +32,4 @@ jobs:
           repository: .
           commit_user_name: gabrielmaialva33
           commit_user_email: gabrielmaialva33@gmail.com
-          commit_author: Maia <gabrielmaialva33@gmail.com>%
+          commit_author: Maia <gabrielmaialva33@gmail.com>
