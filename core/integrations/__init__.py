@@ -1,3 +1,3 @@
-from .telegram_client import Telegram
+from .telegram import Telegram
 
 telegram = Telegram()
