@@ -3,16 +3,16 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from api import router
-from core.integrations import telegram
+from core.integrations import telegram_repository
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    await telegram.start()
-
+    await telegram_repository.start()
+    
     yield
 
-    await telegram.stop()
+    await telegram_repository.stop()
 
 
 def init_routers(app_: FastAPI) -> None:
