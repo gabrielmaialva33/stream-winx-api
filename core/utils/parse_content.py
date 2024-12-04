@@ -1,7 +1,6 @@
 import re
+import unicodedata
 from typing import List, Callable
-
-import emoji
 
 
 class MovieData:
@@ -51,8 +50,12 @@ class FieldDefinition:
         self.is_multiline = is_multiline
 
 
-def is_emoji(character):
-    return character in emoji.EMOJI_DATA
+def is_emoji(character: str) -> bool:
+    if unicodedata.category(character) == 'So':  # 'So' é a categoria para símbolos e outros
+        return True
+    if ord(character) in range(0x1F1E6, 0x1F1FF):  # Bandera (letras A-Z e combinações de bandeiras)
+        return True
+    return False
 
 
 def process_title(match, data, buffer=None):

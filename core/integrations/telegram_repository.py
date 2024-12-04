@@ -55,7 +55,7 @@ class TelegramRepository:
 
         return grouped_messages
 
-    async def list_messages(self, limit: int = 100, offset_id: int = 0) -> List[Dict[str, Any]]:
+    async def list_messages(self, limit: int = 6, offset_id: int = 0) -> List[Dict[str, Any]]:
         grouped_posts = await self.grouped_posts(limit, offset_id)
 
         posts = []
