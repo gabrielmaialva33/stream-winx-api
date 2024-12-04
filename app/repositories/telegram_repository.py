@@ -2,12 +2,10 @@ from datetime import datetime
 from typing import List, Dict, Any
 
 from telethon.tl.functions.messages import GetHistoryRequest
+from telethon.tl.types import Message
 
-from core import STRING_SESSION
 from core.integrations import TelegramClientWrapper
-from core.utils import decode_session, parse_message_content
-
-telethon_session = decode_session(STRING_SESSION)
+from core.utils import parse_message_content
 
 
 class TelegramRepository:
@@ -32,14 +30,14 @@ class TelegramRepository:
         await self.client.disconnect()
 
     async def get_history(
-        self,
-        limit: int = 100,
-        offset_id: int = 0,
-        offset_date=None,
-        add_offset=0,
-        max_id=0,
-        min_id=0,
-    ):
+            self,
+            limit: int = 50,
+            offset_id: int = 0,
+            offset_date=None,
+            add_offset=0,
+            max_id=0,
+            min_id=0,
+    ) -> List[Message]:
         history = await self.client(
             GetHistoryRequest(
                 peer=self.channel,
@@ -56,13 +54,13 @@ class TelegramRepository:
         return history.messages
 
     async def grouped_posts(
-        self,
-        limit: int = 100,
-        offset_id: int = 0,
-        offset_date=None,
-        add_offset=0,
-        max_id=0,
-        min_id=0,
+            self,
+            limit: int = 50,
+            offset_id: int = 0,
+            offset_date=None,
+            add_offset=0,
+            max_id=0,
+            min_id=0,
     ):
         history = await self.get_history(
             limit, offset_id, offset_date, add_offset, max_id, min_id
@@ -82,15 +80,15 @@ class TelegramRepository:
 
         return grouped_messages
 
-    async def list_messages(
-        self,
-        limit: int = 10,
-        offset_id: int = 0,
-        offset_date=None,
-        add_offset=0,
-        max_id=0,
-        min_id=0,
-    ) -> List[Dict[str, Any]]:
+    async def paginate_posts(
+            self,
+            limit: int = 50,
+            offset_id: int = 0,
+            offset_date=None,
+            add_offset=0,
+            max_id=0,
+            min_id=0,
+    ) -> Dict[str, Any]:
         grouped_posts = await self.grouped_posts(
             limit, offset_id, offset_date, add_offset, max_id, min_id
         )
@@ -140,5 +138,19 @@ class TelegramRepository:
                     "parsed_content": parsed_content.to_dict(),
                 }
                 posts.append(post)
+                posts.sort(key=lambda x: x["message_id"], reverse=True)
 
-        return posts
+        data = {
+            "pagination": {
+                "total": len(posts),
+                "limit": limit,
+                "offset_id": offset_id,
+                "offset_date": offset_date,
+                "add_offset": add_offset,
+                "max_id": max_id,
+                "min_id": min_id,
+            },
+            "data": posts,
+        }
+
+        return data
