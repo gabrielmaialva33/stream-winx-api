@@ -10,21 +10,32 @@ from app.schemas import PaginationData, PaginatedPosts
 router = APIRouter()
 
 
-@router.get("/movies", tags=["Post"], response_model=PaginatedPosts)
-async def paginate(limit: int = 10, offset_id: int = 0):
+@router.get("/posts", tags=["Post"], response_model=PaginatedPosts)
+async def paginate(request: Request, limit: int = 10, offset_id: int = 0):
     try:
         pagination_data = PaginationData.from_parameters(
             limit=limit, offset_id=offset_id
         )
 
         data = await telegram_repository.paginate_posts(pagination_data)
+
+        host = request.headers["host"]
+        protocol = request.url.scheme
+
+        for post in data.data:
+            image_url = f"{protocol}://{host}/api/v1/posts/images/{post.message_id}"
+            video_url = f"{protocol}://{host}/api/v1/posts/stream?document_id={post.document_id}&size={post.document_size}&message_id={post.message_document_id}"
+
+            post.image_url = image_url
+            post.video_url = video_url
+
         json_data = jsonable_encoder(data)
         return JSONResponse(json_data)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/movies/images/{message_id}")
+@router.get("/posts/images/{message_id}", tags=["Post"])
 async def image(message_id: int):
     try:
         image_bytes = await telegram_repository.get_image(int(message_id))
@@ -33,16 +44,17 @@ async def image(message_id: int):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/movies/stream")
+@router.get("/posts/stream", tags=["Post"])
 async def video(
-    document_id: int = Query(...),
-    size: int = Query(...),
-    range_header: str | None = Header(None, alias="range"),
+        message_id: int = Query(...),
+        document_id: int = Query(...),
+        size: int = Query(...),
+        range_header: str | None = Header(None, alias="range"),
 ):
     try:
         if not range_header:
             return StreamingResponse(
-                telegram_repository.get_video(document_id, 0, size - 1),
+                telegram_repository.get_video(message_id, document_id, 0, size - 1),
                 media_type="video/mp4",
                 headers={
                     "Content-Type": "video/mp4",
@@ -56,7 +68,7 @@ async def video(
         end = int(range_match[1]) if range_match[1] else size - 1
         chunk_size = end - start + 1
 
-        stream = telegram_repository.get_video(document_id, start, end)
+        stream = telegram_repository.get_video(message_id, document_id, start, end)
         return StreamingResponse(
             stream,
             media_type="video/mp4",
@@ -71,27 +83,21 @@ async def video(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/movies/{message_id}", response_model=PaginationData)
+@router.get("/posts/{message_id}", tags=["Post"])
 async def get(message_id: int, request: Request):
     try:
         data = await telegram_repository.get_post(message_id)
 
         host = request.headers["host"]
-        port = request.headers.get("x-forwarded-port", "443")
         protocol = request.url.scheme
 
-        print(f"host: {host}")
-        print(f"port: {port}")
-        print(f"protocol: {protocol}")
+        image_url = f"{protocol}://{host}/api/v1/posts/images/{data.message_id}"
+        video_url = f"{protocol}://{host}/api/v1/posts/stream?document_id={data.document_id}&size={data.document_size}&message_id={data.message_document_id}"
 
-        image_url = f"{protocol}://{host}/api/v1/movies/images/{data['message_id']}"
-        video_url = f"{protocol}://{host}/api/v1/movies/stream?document_id={data['document']['id']}&size={data['document']['size']}"
+        data.image_url = image_url
+        data.video_url = video_url
 
-        data["image_url"] = image_url
-        data["video_url"] = video_url
-
-        del data["document"]  # Remove the document from the response
-
-        return JSONResponse(content=data)
+        json_data = jsonable_encoder(data)
+        return JSONResponse(json_data)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

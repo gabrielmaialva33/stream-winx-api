@@ -6,10 +6,8 @@ from telethon.tl.types import Message
 
 from app.schemas import PaginationData, Post, PaginatedPosts
 from core import logger
-from core.cache import CacheManager
+from core.cache import cache
 from core.integrations import TelegramClientWrapper
-
-cache = CacheManager(max_size=100, ttl=3600)
 
 
 @dataclass
@@ -48,7 +46,7 @@ class TelegramRepository:
         return history.messages
 
     async def _grouped_posts(
-        self, pagination: PaginationData
+            self, pagination: PaginationData
     ) -> Dict[str, List[Message]]:
         history = await self._get_history(pagination)
         messages = [
@@ -67,7 +65,7 @@ class TelegramRepository:
         return grouped_messages
 
     async def paginate_posts(self, pagination: PaginationData) -> PaginatedPosts:
-        posts = []
+        posts: List[Post] = []
         grouped_posts = await self._grouped_posts(pagination)
         for group in grouped_posts.values():
             info = next(
@@ -78,80 +76,64 @@ class TelegramRepository:
                 ),
                 None,
             )
+            media = next(
+                (
+                    msg
+                    for msg in group
+                    if msg.__class__.__name__ == "Message" and msg.media
+                ),
+                None,
+            )
 
             if info:
-                post = Post.from_message(info)
+                post = Post.from_messages([info, media])
                 posts.append(post)
 
         posts.sort(key=lambda x: x.message_id, reverse=True)
 
         return PaginatedPosts(data=posts, pagination=pagination)
 
-    async def get_post(self, message_id: int):
+    async def get_post(self, message_id: int) -> Post:
         messages = await self.client.get_messages(
             self.channel, ids=[message_id, message_id + 1]
         )
 
         posts = sorted(messages, key=lambda x: x.id)
-        info_message = posts[0]
-        media_message = posts[1]
+        post = Post.from_messages(posts)
 
-        reactions = []
-        if info_message.reactions:
-            reactions = [
-                {
-                    "reaction": (
-                        result.reaction.emoticon
-                        if hasattr(result.reaction, "emoticon")
-                        else None
-                    ),
-                    "count": result.count,
-                }
-                for result in info_message.reactions.results
-                if hasattr(result.reaction, "emoticon")
-            ]
-
-        parsed_content = parse_message_content(info_message.message)
-        if not media_message.media.document:
-            raise Exception("No media found in the provided message")
-
-        document = media_message.media.document
-
-        document_cache = cache.get(document.id)
-        if not document_cache:
-            cache.set(document.id, document)
-
-        return {
-            "image_url": "",
-            "video_url": "",
-            "grouped_id": info_message.grouped_id,
-            "message_id": info_message.id,
-            "date": (
-                info_message.date.isoformat()
-                if isinstance(info_message.date, datetime)
-                else info_message.date
-            ),
-            "author": info_message.post_author,
-            "reactions": reactions,
-            "original_content": info_message.message,
-            "parsed_content": parsed_content.to_dict(),
-            "document": document.to_dict(),
-        }
+        return post
 
     async def get_image(self, message_id: int):
         messages = await self.client.get_messages(self.channel, ids=[message_id])
-        message = messages[0]
+        info = next(
+            (
+                msg
+                for msg in messages
+                if msg.__class__.__name__ == "Message" and msg.message
+            ),
+            None,
+        )
 
-        # get only the bytes of the image
-        image = await self.client.download_file(message.media.photo)
+        image = await self.client.download_file(info.media.photo)
         return image
 
-    async def get_video(self, document_id: int, start: int, end: int):
+    async def get_video(self, message_id: int, document_id: int, start: int, end: int):
         document = cache.get(document_id)
         if not document:
-            raise Exception("Document not found in cache")
+            messages = await self.client.get_messages(self.channel, ids=[message_id])
+            media = next(
+                (
+                    msg
+                    for msg in messages
+                    if msg.__class__.__name__ == "Message" and msg.media
+                ),
+                None,
+            )
+            document = media.media.document
+            cache.set(document_id, document)
 
         async for chunk in self.client.iter_download(
-            document, offset=start, limit=end - start + 1, chunk_size=1024 * 1024  # 1MB
+                document, offset=start, limit=end - start + 1, chunk_size=1024 * 1024, request_size=1024 * 1024,
+                stride=1024 * 1024
         ):
             yield chunk
