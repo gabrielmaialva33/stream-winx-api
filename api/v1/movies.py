@@ -67,8 +67,12 @@ async def get(message_id: int, request: Request):
         data = await telegram_repository.get_post(message_id)
 
         host = request.client.host
-        port = request.url.port
+        port = request.client.port
         protocol = request.url.scheme
+
+        print(f"host: {host}")
+        print(f"port: {port}")
+        print(f"protocol: {protocol}")
 
         image_url = f"{protocol}://{host}:{port}/api/v1/movies/images/{data['message_id']}"
         video_url = f"{protocol}://{host}:{port}/api/v1/movies/stream?document_id={data['document']['id']}&size={data['document']['size']}"
