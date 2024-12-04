@@ -35,7 +35,9 @@ async def paginate(request: Request, limit: int = 10, offset_id: int = 0):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/posts/images/{message_id}", tags=["Post"], response_class=StreamingResponse)
+@router.get(
+    "/posts/images/{message_id}", tags=["Post"], response_class=StreamingResponse
+)
 async def image(message_id: int):
     try:
         image_bytes = await telegram_repository.get_image(int(message_id))
