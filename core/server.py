@@ -9,7 +9,7 @@ from core.integrations import telegram_repository
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     await telegram_repository.start()
-    
+
     yield
 
     await telegram_repository.stop()
