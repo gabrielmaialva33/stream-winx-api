@@ -17,24 +17,31 @@ class TelegramRepository:
         self.channel = None
 
     async def start_client(self):
+        """
+        Start the telegram client and connect to the channel
+        """
         if not self.client.is_connected():
             await self.client.connect()
         await self.client.start()
         self.channel = await self.client.get_entity(self.channel_id)
 
     async def stop_client(self):
+        """
+        Stop the telegram client and disconnect from the channel
+        """
         await self.client.disconnect()
 
-    async def get_history(self, limit: int = 100, offset_id: int = 0):
+    async def get_history(self, limit: int = 100, offset_id: int = 0, offset_date=None, add_offset=0, max_id=0,
+                          min_id=0):
         history = await self.client(
             GetHistoryRequest(
                 peer=self.channel,
                 limit=limit,
                 offset_id=offset_id,
-                offset_date=None,
-                add_offset=0,
-                max_id=0,
-                min_id=0,
+                offset_date=offset_date,
+                add_offset=add_offset,
+                max_id=max_id,
+                min_id=min_id,
                 hash=self.channel.access_hash,
             )
         )
@@ -59,7 +66,7 @@ class TelegramRepository:
         return grouped_messages
 
     async def list_messages(
-        self, limit: int = 6, offset_id: int = 0
+            self, limit: int = 10, offset_id: int = 0
     ) -> List[Dict[str, Any]]:
         grouped_posts = await self.grouped_posts(limit, offset_id)
 
