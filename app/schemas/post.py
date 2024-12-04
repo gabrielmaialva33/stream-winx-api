@@ -24,7 +24,9 @@ class Post:
     )
     document_id: Optional[int] = Field(None, description="Document ID")
     document_size: Optional[int] = Field(None, description="Document size")
-    message_document_id: Optional[int] = Field(None, description="Message ID of the document")
+    message_document_id: Optional[int] = Field(
+        None, description="Message ID of the document"
+    )
 
     @classmethod
     def from_message(cls, message: Message) -> "Post":
@@ -61,13 +63,16 @@ class Post:
             parsed_content=parsed_content.to_dict(),
             document_id=None,
             document_size=None,
-            message_document_id=None
+            message_document_id=None,
         )
 
     @classmethod
     def from_messages(cls, messages: List[Message]) -> "Post":
         info_message = next((msg for msg in messages if msg.message), None)
-        media_message = next((msg for msg in messages if msg.media and hasattr(msg.media, 'document')), None)
+        media_message = next(
+            (msg for msg in messages if msg.media and hasattr(msg.media, "document")),
+            None,
+        )
 
         parsed_content = parse_message_content(info_message.message)
 
@@ -108,7 +113,7 @@ class Post:
             parsed_content=parsed_content.to_dict(),
             document_id=media_message.media.document.id if media_message else None,
             document_size=media_message.media.document.size if media_message else None,
-            message_document_id=media_message.id if media_message else None
+            message_document_id=media_message.id if media_message else None,
         )
 
 
