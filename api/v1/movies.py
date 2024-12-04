@@ -1,9 +1,11 @@
 from io import BytesIO
+from typing import List
 
 from fastapi import APIRouter, HTTPException, Header, Query, Request
 from starlette.responses import JSONResponse, StreamingResponse
 
 from app.repositories import telegram_repository
+from app.repositories.telegram_repository import Post, PaginationData
 
 router = APIRouter()
 
@@ -11,7 +13,9 @@ router = APIRouter()
 @router.get("/movies")
 async def paginate(limit: int = 10, offset_id: int = 0):
     try:
-        data = await telegram_repository.paginate_posts(limit, offset_id)
+        pagination_data = PaginationData.from_parameters(limit=limit, offset_id=offset_id)
+
+        data = await telegram_repository.paginate_posts(pagination_data)
         return JSONResponse(content=data)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -28,9 +32,9 @@ async def image(message_id: int):
 
 @router.get("/movies/stream")
 async def video(
-    document_id: int = Query(...),
-    size: int = Query(...),
-    range_header: str | None = Header(None, alias="range"),
+        document_id: int = Query(...),
+        size: int = Query(...),
+        range_header: str | None = Header(None, alias="range"),
 ):
     try:
         if not range_header:
@@ -64,7 +68,7 @@ async def video(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/movies/{message_id}")
+@router.get("/movies/{message_id}", response_model=List[Post])
 async def get(message_id: int, request: Request):
     try:
         data = await telegram_repository.get_post(message_id)
