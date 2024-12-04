@@ -25,10 +25,7 @@ class CacheManager:
             # Evict the oldest item when the cache reaches its maximum size
             self._evict()
 
-        self.cache[key] = {
-            "value": value,
-            "timestamp": current_time
-        }
+        self.cache[key] = {"value": value, "timestamp": current_time}
         self.order[key] = current_time  # Keeps track of insertion order
 
     def get(self, key):

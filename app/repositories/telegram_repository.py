@@ -36,13 +36,13 @@ class TelegramRepository:
         logger.info("Disconnected from Telegram")
 
     async def get_history(
-            self,
-            limit: int = 50,
-            offset_id: int = 0,
-            offset_date=None,
-            add_offset=0,
-            max_id=0,
-            min_id=0,
+        self,
+        limit: int = 50,
+        offset_id: int = 0,
+        offset_date=None,
+        add_offset=0,
+        max_id=0,
+        min_id=0,
     ) -> List[Message]:
         """
         Get the chat history of the channel
@@ -63,13 +63,13 @@ class TelegramRepository:
         return history.messages
 
     async def grouped_posts(
-            self,
-            limit: int = 50,
-            offset_id: int = 0,
-            offset_date=None,
-            add_offset=0,
-            max_id=0,
-            min_id=0,
+        self,
+        limit: int = 50,
+        offset_id: int = 0,
+        offset_date=None,
+        add_offset=0,
+        max_id=0,
+        min_id=0,
     ):
         """
         Group the posts by the grouped id
@@ -93,13 +93,13 @@ class TelegramRepository:
         return grouped_messages
 
     async def paginate_posts(
-            self,
-            limit: int = 50,
-            offset_id: int = 0,
-            offset_date=None,
-            add_offset=0,
-            max_id=0,
-            min_id=0,
+        self,
+        limit: int = 50,
+        offset_id: int = 0,
+        offset_date=None,
+        add_offset=0,
+        max_id=0,
+        min_id=0,
     ) -> Dict[str, Any]:
         """
         Paginate the posts of the channel
@@ -175,7 +175,9 @@ class TelegramRepository:
         """
         Get a post by its message id
         """
-        messages = await self.client.get_messages(self.channel, ids=[message_id, message_id + 1])
+        messages = await self.client.get_messages(
+            self.channel, ids=[message_id, message_id + 1]
+        )
 
         posts = sorted(messages, key=lambda x: x.id)
         info_message = posts[0]
@@ -243,6 +245,6 @@ class TelegramRepository:
             raise Exception("Document not found in cache")
 
         async for chunk in self.client.iter_download(
-                document, offset=start, limit=end - start + 1, chunk_size=1024 * 1024
+            document, offset=start, limit=end - start + 1, chunk_size=1024 * 1024
         ):
             yield chunk
