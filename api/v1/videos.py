@@ -10,6 +10,6 @@ router = APIRouter()
 async def paginate():
     try:
         posts = await telegram_repository.list_messages()
-        return JSONResponse(content={"posts": posts})
+        return JSONResponse(content=posts)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

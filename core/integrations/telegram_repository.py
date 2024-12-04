@@ -5,7 +5,7 @@ from telethon import TelegramClient
 from telethon.tl.functions.messages import GetHistoryRequest
 
 from core import logger, API_ID, API_HASH, STRING_SESSION, CHANNEL_ID
-from core.utils import decode_session
+from core.utils import decode_session, parse_message_content
 
 telethon_session = decode_session(STRING_SESSION)
 
@@ -75,6 +75,8 @@ class TelegramRepository:
                         if hasattr(result.reaction, 'emoticon')
                     ]
 
+                parsed_content = parse_message_content(info.message)
+
                 post = {
                     'image_url': '',
                     'grouped_id': group['grouped_id'],
@@ -83,6 +85,7 @@ class TelegramRepository:
                     'author': info.post_author,
                     'reactions': reactions,
                     'original_content': info.message,
+                    'parsed_content': parsed_content.to_dict()
                 }
                 posts.append(post)
 
