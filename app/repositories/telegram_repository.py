@@ -48,8 +48,9 @@ class TelegramRepository:
 
         return history.messages
 
-    async def grouped_posts(self, limit: int = 100, offset_id: int = 0):
-        history = await self.get_history(limit, offset_id)
+    async def grouped_posts(self, limit: int = 100, offset_id: int = 0, offset_date=None, add_offset=0, max_id=0,
+                            min_id=0):
+        history = await self.get_history(limit, offset_id, offset_date, add_offset, max_id, min_id)
         messages = [
             message
             for message in history
@@ -66,9 +67,9 @@ class TelegramRepository:
         return grouped_messages
 
     async def list_messages(
-            self, limit: int = 10, offset_id: int = 0
+            self, limit: int = 10, offset_id: int = 0, offset_date=None, add_offset=0, max_id=0, min_id=0
     ) -> List[Dict[str, Any]]:
-        grouped_posts = await self.grouped_posts(limit, offset_id)
+        grouped_posts = await self.grouped_posts(limit, offset_id, offset_date, add_offset, max_id, min_id)
 
         posts = []
         for group in grouped_posts.values():
