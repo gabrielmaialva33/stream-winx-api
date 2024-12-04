@@ -5,7 +5,7 @@ from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse, StreamingResponse
 
 from app.repositories import telegram_repository
-from app.schemas import PaginationData, PaginatedPosts
+from app.schemas import PaginationData, PaginatedPosts, Post
 
 router = APIRouter()
 
@@ -35,7 +35,7 @@ async def paginate(request: Request, limit: int = 10, offset_id: int = 0):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/posts/images/{message_id}", tags=["Post"])
+@router.get("/posts/images/{message_id}", tags=["Post"], response_class=StreamingResponse)
 async def image(message_id: int):
     try:
         image_bytes = await telegram_repository.get_image(int(message_id))
@@ -44,7 +44,7 @@ async def image(message_id: int):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/posts/stream", tags=["Post"])
+@router.get("/posts/stream", tags=["Post"], response_class=StreamingResponse)
 async def video(
         message_id: int = Query(...),
         document_id: int = Query(...),
@@ -83,7 +83,7 @@ async def video(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/posts/{message_id}", tags=["Post"])
+@router.get("/posts/{message_id}", tags=["Post"], response_model=Post)
 async def get(message_id: int, request: Request):
     try:
         data = await telegram_repository.get_post(message_id)

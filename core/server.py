@@ -1,6 +1,8 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from starlette.responses import HTMLResponse
+from starlette.staticfiles import StaticFiles
 
 from api import router
 from app.repositories import telegram_repository
@@ -30,6 +32,14 @@ def create_app() -> FastAPI:
     )
 
     init_routers(app_)
+
+    app_.mount("/static", StaticFiles(directory="static"), name="static")
+
+    @app_.get("/", include_in_schema=False)
+    async def redoc_html():
+        with open("static/doc/doc.html", "r") as file:
+            html_content = file.read()
+        return HTMLResponse(content=html_content, status_code=200)
 
     return app_
 
