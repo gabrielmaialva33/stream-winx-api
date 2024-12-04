@@ -47,10 +47,13 @@ class TelegramRepository:
         )
         return history.messages
 
-    async def grouped_posts(self, pagination: PaginationData) -> Dict[str, List[Message]]:
+    async def grouped_posts(
+        self, pagination: PaginationData
+    ) -> Dict[str, List[Message]]:
         history = await self.get_history(pagination)
         messages = [
-            message for message in history
+            message
+            for message in history
             if hasattr(message, "grouped_id") and message.grouped_id
         ]
 
@@ -69,7 +72,11 @@ class TelegramRepository:
         posts = []
         for group in grouped_posts.values():
             info = next(
-                (msg for msg in group if msg.__class__.__name__ == "Message" and msg.message),
+                (
+                    msg
+                    for msg in group
+                    if msg.__class__.__name__ == "Message" and msg.message
+                ),
                 None,
             )
 
