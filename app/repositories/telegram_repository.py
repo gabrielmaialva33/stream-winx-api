@@ -47,7 +47,9 @@ class TelegramRepository:
         )
         return history.messages
 
-    async def _grouped_posts(self, pagination: PaginationData) -> Dict[str, List[Message]]:
+    async def _grouped_posts(
+        self, pagination: PaginationData
+    ) -> Dict[str, List[Message]]:
         history = await self._get_history(pagination)
         messages = [
             message
@@ -153,4 +155,3 @@ class TelegramRepository:
             document, offset=start, limit=end - start + 1, chunk_size=1024 * 1024  # 1MB
         ):
             yield chunk
-
