@@ -6,7 +6,7 @@ from app.repositories import telegram_repository
 router = APIRouter()
 
 
-@router.get("/videos")
+@router.get("/movies")
 async def paginate(limit: int = 10, offset_id: int = 0):
     try:
         data = await telegram_repository.paginate_posts(limit, offset_id)

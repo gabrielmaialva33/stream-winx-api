@@ -134,6 +134,7 @@ class TelegramRepository:
 
                 post = {
                     "image_url": "",
+                    "video_url": "",
                     "grouped_id": group["grouped_id"],
                     "message_id": info.id,
                     "date": (

@@ -1,0 +1,561 @@
+openapi: 3.1.0
+info:
+  title: StreamWinx API
+  version: 0.0.1
+  description: |
+    ## About
+    This is the API documentation for the CineWinx system. The API is used to streaming movies and series. Using this API telegram channel.
+
+    ## Authentication
+    The API uses JWT for authentication. To authenticate, you must send the `Authorization` header with the value `Bearer <token>`. The token is obtained by signing in to the system.
+
+    ### Postman Post-Request Script
+    You can use the following code to get a token in Postman:
+    ```js
+    var responseData = pm.response.json();
+    var token = responseData.auth.access_token;
+    pm.environment.set("bearerToken", token);
+    ```
+
+    <!-- ReDoc-Inject: <security-definitions> -->
+  x-logo:
+    url: 'https://raw.githubusercontent.com/gabrielmaialva33/cinewinx-api/refs/heads/main/.github/assets/logo.jpg'
+    altText: Logo
+  contact:
+    name: Gabriel M.
+    email: gabrielmaialva33@gmail.com
+    url: https://github.com/gabrielmaialva33
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+servers:
+  - url: http://localhost:3333
+    description: Local server
+  - url: https://dev.cinewinx.com.br
+    description: Development server
+tags:
+  - name: Session
+    description: Operations related to sessions
+  - name: User
+    description: Operations related to users
+  - name: Health
+    description: Operations related to system health
+  - name: Movie
+    description: Operations related to movies
+paths:
+  /health:
+    get:
+      summary: System Health Check
+      description: Returns the system health status and detailed checks.
+      tags:
+        - Health
+      parameters:
+        - name: Content-Type
+          in: header
+          required: true
+          schema:
+            type: string
+            example: application/json
+      responses:
+        '200':
+          description: System health information.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthCheckResponse'
+
+  /api/v1/movies:
+    get:
+      summary: List Movies
+      description: Returns a list of movies.
+      tags:
+        - Movie
+      parameters:
+        - name: Content-Type
+          in: header
+          required: true
+          schema:
+            type: string
+            example: application/json
+      responses:
+        '200':
+          description: A list of posts of the movies.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Post'
+  /api/v1/movies/videos:
+    get:
+      summary: Get Movie Video
+      description: Returns a movie video by ID.
+      tags:
+        - Movie
+      parameters:
+        - name: Content-Type
+          in: header
+          required: true
+          schema:
+            type: string
+            example: application/json
+        - name: documentId
+          in: query
+          required: true
+          schema:
+            type: number
+            format: int64
+            example: 5044457385712682420
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: number
+            example: 1000
+        - name: range
+          in: header
+          required: false
+          schema:
+            type: string
+            example: bytes=0-1000
+      responses:
+        '200':
+          description: The video buffer
+          content:
+            video/mp4:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Video not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFound'
+  /api/v1/movies/{messageId}:
+    get:
+      summary: Get Movie
+      description: Returns a movie by ID.
+      tags:
+        - Movie
+      parameters:
+        - name: Content-Type
+          in: header
+          required: true
+          schema:
+            type: string
+            example: application/json
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: number
+            format: int64
+            example: 7188
+      responses:
+        '200':
+          description: The post of the movie.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+        '404':
+          description: Movie not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFound'
+  /api/v1/movies/images:
+    get:
+      summary: Get Movie Image
+      description: Returns a movie image by ID.
+      tags:
+        - Movie
+      parameters:
+        - name: Content-Type
+          in: header
+          required: true
+          schema:
+            type: string
+            example: application/json
+        - name: messageId
+          in: query
+          required: true
+          schema:
+            type: number
+            format: int64
+            example: 7188
+      responses:
+        '200':
+          description: The image buffer
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Image not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFound'
+components:
+  securitySchemes:
+    bearerToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    # errors
+    Unauthorized:
+      type: object
+      properties:
+        status:
+          type: number
+          description: The status code of the error.
+          example: 401
+        message:
+          type: string
+          description: The error message.
+          example: Invalid user credentials
+    NotFound:
+      type: object
+      properties:
+        status:
+          type: number
+          description: The status code of the error.
+          example: 404
+        message:
+          type: string
+          description: The error message.
+          example: Entity not found
+    UnprocessableEntity:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              message:
+                type: string
+                description: The error message.
+                example: The email has already been taken
+              rule:
+                type: string
+                description: The rule that was broken.
+                example: database.unique
+              field:
+                type: string
+                description: The field that caused the error.
+                example: email
+            example:
+              - {
+                'message': 'The email has already been taken',
+                'rule': 'database.unique',
+                'field': 'email',
+              }
+              - {
+                'message': 'The username has already been taken',
+                'rule': 'database.unique',
+                'field': 'username',
+              }
+
+    # health schemas
+    HealthCheckResponse:
+      type: object
+      properties:
+        isHealthy:
+          type: boolean
+          description: Indicates if the system is healthy.
+          example: false
+        status:
+          type: string
+          description: The overall health status.
+          example: error
+        finishedAt:
+          type: string
+          format: date-time
+          description: The timestamp when the health check was completed.
+          example: 2024-11-24T20:18:20.947Z
+        debugInfo:
+          type: object
+          properties:
+            pid:
+              type: integer
+              description: Process ID of the application.
+              example: 20813
+            ppid:
+              type: integer
+              description: Parent process ID of the application.
+              example: 20810
+            platform:
+              type: string
+              description: Platform on which the application is running.
+              example: darwin
+            uptime:
+              type: number
+              description: Uptime of the application in seconds.
+              example: 3.838426084
+            version:
+              type: string
+              description: Application version.
+              example: v22.11.0
+        checks:
+          type: array
+          items:
+            $ref: '#/components/schemas/HealthCheck'
+    HealthCheck:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the health check.
+          example: Disk space check
+        isCached:
+          type: boolean
+          description: Indicates if the result is cached.
+          example: false
+        message:
+          type: string
+          description: Message describing the health check result.
+          example: Disk usage is under defined thresholds
+        status:
+          type: string
+          description: Status of the health check.
+          enum:
+            - ok
+            - warning
+            - error
+          example: ok
+        finishedAt:
+          type: string
+          format: date-time
+          description: The timestamp when the check was completed.
+          example: 2024-11-24T20:18:20.947Z
+        meta:
+          type: object
+          description: Additional metadata about the health check.
+          properties:
+            sizeInPercentage:
+              type: object
+              nullable: true
+              properties:
+                used:
+                  type: integer
+                  description: Used disk percentage.
+                  example: 48
+                failureThreshold:
+                  type: integer
+                  description: Threshold for failure in percentage.
+                  example: 80
+                warningThreshold:
+                  type: integer
+                  description: Threshold for warnings in percentage.
+                  example: 75
+            memoryInBytes:
+              type: object
+              nullable: true
+              properties:
+                used:
+                  type: integer
+                  description: Memory used in bytes.
+                  example: 37537600
+                failureThreshold:
+                  type: integer
+                  description: Threshold for failure in bytes.
+                  example: 314572800
+                warningThreshold:
+                  type: integer
+                  description: Threshold for warnings in bytes.
+                  example: 262144000
+            error:
+              type: object
+              nullable: true
+              properties:
+                errno:
+                  type: integer
+                  description: Error number.
+                  example: -61
+                code:
+                  type: string
+                  description: Error code.
+                  example: ECONNREFUSED
+                syscall:
+                  type: string
+                  description: System call that failed.
+                  example: connect
+                address:
+                  type: string
+                  description: Address of the connection attempt.
+                  example: 127.0.0.1
+                port:
+                  type: integer
+                  description: Port of the connection attempt.
+                  example: 5432
+            connection:
+              type: object
+              nullable: true
+              properties:
+                name:
+                  type: string
+                  description: Name of the connection.
+                  example: postgres
+                dialect:
+                  type: string
+                  description: Database dialect.
+                  example: postgres
+
+    # movie schemas
+    Movie:
+      type: object
+      properties:
+        title:
+          type: string
+          description: The title of the movie.
+          example: Fúria Sem Limites
+        release_date:
+          type: string
+          description: The release date of the movie.
+          example: 2022
+        country_of_origin:
+          type: array
+          items:
+            type: string
+          description: The country of origin of the movie.
+          example: [ Japão ]
+        flags_of_origin:
+          type: array
+          items:
+            type: string
+          description: The flags of the country of origin of the movie.
+          example: [ 🇯🇵 ]
+        directors:
+          type: array
+          items:
+            type: string
+          description: The directors of the movie.
+          example: [ YoshikiTakahashi ]
+        writers:
+          type: array
+          items:
+            type: string
+          description: The writers of the movie.
+          example: [ ]
+        cast:
+          type: array
+          items:
+            type: string
+          description: The cast of the movie.
+          example: [ YohtaKawase, RyujuKobayashi, EitaOkuno, AyaSaiki, ShingoMizusawa ]
+        languages:
+          type: array
+          items:
+            type: string
+          description: The languages of the movie.
+          example: [ Português ]
+        flags_of_language:
+          type: array
+          items:
+            type: string
+          description: The flags of the languages of the movie.
+          example: [ 🇧🇷 ]
+        subtitles:
+          type: array
+          items:
+            type: string
+          description: The subtitles of the movie.
+          example: [ ]
+        flags_of_subtitles:
+          type: array
+          items:
+            type: string
+          description: The flags of the subtitles of the movie.
+          example: [ ]
+        genres:
+          type: array
+          items:
+            type: string
+          description: The genres of the movie.
+          example: [ Ação, Drama, Thriller, Mistério, CinemaJaponês ]
+        tags:
+          type: array
+          items:
+            type: string
+          description: The tags of the movie.
+          example: [ ]
+        synopsis:
+          type: string
+          description: The synopsis of the movie.
+          example: Fukama é um detetive japonês conhecido por perder o controle quando sente raiva. Após um tratamento no exterior, ele retorna ao Japão e encontra sua cidade protegida por um grupo de vigilantes. Ao descobrir segredos obscuros sobre o grupo, Fukama percebe que sua raiva será colocada à prova mais uma vez.
+        curiosities:
+          type: string
+          description: The curiosities of the movie.
+          example: null
+      example:
+        {
+          'title': 'Fúria Sem Limites',
+          'release_date': '2022',
+          'country_of_origin': [ 'Japão' ],
+          'flags_of_origin': [ '🇯🇵' ],
+          'directors': [ 'YoshikiTakahashi' ],
+          'writers': [ ],
+          'cast': [ 'YohtaKawase', 'RyujuKobayashi', 'EitaOkuno', 'AyaSaiki', 'ShingoMizusawa' ],
+          'languages': [ 'Português' ],
+          'flags_of_language': [ '🇧🇷' ],
+          'subtitles': [ ],
+          'flags_of_subtitles': [ ],
+          'genres': [ 'Ação', 'Drama', 'Thriller', 'Mistério', 'CinemaJaponês' ],
+          'tags': [ ],
+          'synopsis': 'Fukama é um detetive japonês conhecido por perder o controle quando sente raiva. Após um tratamento no exterior, ele retorna ao Japão e encontra sua cidade protegida por um grupo de vigilantes. Ao descobrir segredos obscuros sobre o grupo, Fukama percebe que sua raiva será colocada à prova mais uma vez.',
+          'curiosities': null,
+        }
+    Post:
+      type: object
+      properties:
+        image_url:
+          type: string
+          description: The URL of the image.
+          example: http://localhost:3333/movies/images?message_id=7188
+        video_url:
+          type: string
+          description: The URL of the video.
+          example: 'http://localhost:3333/movies/stream?document_id=5044457385712682420'
+        grouped_id:
+          type: string
+          description: The grouped ID of the post.
+          example: 13864104313698361
+        message_id:
+          type: number
+          format: int64
+          description: The message ID of the post.
+          example: 7188
+        date:
+          type: number
+          format: int64
+          description: The date of the post.
+          example: 1733013039
+        author:
+          type: string
+          description: The author of the post.
+          example: S̶̼̯͒̆̃͑̆r̷̢̖̥̞̱͚̮̦͚͐͐̀͐ͅ.̷̖̂̾N̵̏̄ ͔͙̭̯̰̖̌̚
+        reactions:
+          type: array
+          items:
+            type: object
+            properties:
+              reaction:
+                type: string
+                description: The reaction.
+                example: 👍
+              count:
+                type: number
+                format: int64
+                description: The count of the reaction.
+                example: 2
+        original_content:
+          type: string
+          description: The original content of the post.
+          example: '📺 Fúria Sem Limites #2022y\n\nPais de Origem: Japão 🇯🇵\nDireção: #YoshikiTakahashi\nElenco: #YohtaKawase'
+        parsed_content:
+          $ref: '#/components/schemas/Movie'
