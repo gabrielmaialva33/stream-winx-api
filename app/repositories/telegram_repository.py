@@ -1,10 +1,10 @@
 from datetime import datetime
 from typing import List, Dict, Any
 
-from telethon import TelegramClient
 from telethon.tl.functions.messages import GetHistoryRequest
 
-from core import logger, API_ID, API_HASH, STRING_SESSION, CHANNEL_ID
+from core import STRING_SESSION
+from core.integrations import TelegramClientWrapper
 from core.utils import decode_session, parse_message_content
 
 telethon_session = decode_session(STRING_SESSION)
@@ -12,17 +12,17 @@ telethon_session = decode_session(STRING_SESSION)
 
 class TelegramRepository:
     def __init__(self):
-        self.client = TelegramClient(telethon_session, API_ID, API_HASH)
-        self.channel_id = CHANNEL_ID
+        self.client = TelegramClientWrapper()
+        self.channel_id = self.client.channel_id
         self.channel = None
 
-    async def start(self):
-        logger.info("Starting Telegram client")
+    async def start_client(self):
+        if not self.client.is_connected():
+            await self.client.connect()
         await self.client.start()
         self.channel = await self.client.get_entity(self.channel_id)
 
-    async def stop(self):
-        logger.info("Stopping Telegram client")
+    async def stop_client(self):
         await self.client.disconnect()
 
     async def get_history(self, limit: int = 100, offset_id: int = 0):

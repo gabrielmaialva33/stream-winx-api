@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from starlette.responses import JSONResponse
 
-from core.integrations import telegram_repository
+from app.repositories import telegram_repository
 
 router = APIRouter()
 

@@ -1,3 +1,1 @@
-from .telegram_repository import TelegramRepository
-
-telegram_repository = TelegramRepository()
+from .telegram_client import TelegramClientWrapper
