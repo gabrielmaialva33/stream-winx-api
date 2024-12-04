@@ -39,7 +39,7 @@ class Telegram:
 
     async def get_file_stream(self, document, start: int, end: int):
         async for chunk in self.client.iter_download(
-                document, offset=start, limit=end - start + 1, chunk_size=1024 * 1024
+            document, offset=start, limit=end - start + 1, chunk_size=1024 * 1024
         ):
             yield chunk
 
@@ -48,13 +48,13 @@ class Telegram:
 
     async def get_history(self, limit: int = 30, offset_id: int = 0) -> List[Message]:
         history = await self.client.get_messages(
-            entity=self.channel_id,
-            limit=limit,
-            offset_id=offset_id
+            entity=self.channel_id, limit=limit, offset_id=offset_id
         )
         return history
 
-    async def grouped_posts(self, limit: int = 30, offset_id: int = 0) -> Dict[str, List[Message]]:
+    async def grouped_posts(
+        self, limit: int = 30, offset_id: int = 0
+    ) -> Dict[str, List[Message]]:
         history = await self.get_history(limit, offset_id)
         messages = [msg for msg in history if isinstance(msg, Message)]
         grouped_messages = [msg for msg in messages if msg.grouped_id]
@@ -70,7 +70,7 @@ class Telegram:
 
     async def list_messages(self, limit: int = 100, offset_id: int = 0) -> List[Dict]:
         grouped_posts = await self.grouped_posts(limit, offset_id)
-        print('grouped_posts', grouped_posts)
+        print("grouped_posts", grouped_posts)
         posts = []
 
         for group in grouped_posts.values():
@@ -81,24 +81,23 @@ class Telegram:
                 # Extrair reações
                 if info.reactions:
                     for reaction in info.reactions.results:
-                        emoticon = getattr(reaction.reaction, 'emoticon', None)
+                        emoticon = getattr(reaction.reaction, "emoticon", None)
                         if emoticon:
-                            reactions.append({
-                                'reaction': emoticon,
-                                'count': reaction.count
-                            })
+                            reactions.append(
+                                {"reaction": emoticon, "count": reaction.count}
+                            )
 
                 parsed_data = parse_message_content(info.message)
 
                 post = {
-                    'image_url': '',  # Você pode implementar a lógica para URLs de imagens
-                    'grouped_id': str(info.grouped_id),
-                    'message_id': info.id,
-                    'date': info.date.isoformat(),
-                    'author': info.post_author,  # Certifique-se de que este atributo existe
-                    'reactions': reactions,
-                    'original_content': info.message,
-                    'parsed_content': parsed_data,
+                    "image_url": "",  # Você pode implementar a lógica para URLs de imagens
+                    "grouped_id": str(info.grouped_id),
+                    "message_id": info.id,
+                    "date": info.date.isoformat(),
+                    "author": info.post_author,  # Certifique-se de que este atributo existe
+                    "reactions": reactions,
+                    "original_content": info.message,
+                    "parsed_content": parsed_data,
                 }
 
                 posts.append(post)
@@ -106,10 +105,7 @@ class Telegram:
         return posts
 
     async def get_image(self, message_id: int) -> bytes:
-        message = await self.client.get_messages(
-            entity=self.channel_id,
-            ids=message_id
-        )
+        message = await self.client.get_messages(entity=self.channel_id, ids=message_id)
         if not message or not message.photo:
             raise BadRequestException("No image found in the provided message.")
 
