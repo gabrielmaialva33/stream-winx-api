@@ -58,9 +58,13 @@ class FieldDefinition:
 
 
 def is_emoji(character: str) -> bool:
-    if unicodedata.category(character) == 'So':  # 'So' é a categoria para símbolos e outros
+    if (
+        unicodedata.category(character) == "So"
+    ):  # 'So' é a categoria para símbolos e outros
         return True
-    if ord(character) in range(0x1F1E6, 0x1F1FF):  # Bandera (letras A-Z e combinações de bandeiras)
+    if ord(character) in range(
+        0x1F1E6, 0x1F1FF
+    ):  # Bandera (letras A-Z e combinações de bandeiras)
         return True
     return False
 
