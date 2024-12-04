@@ -1,2 +1,2 @@
 from .pagination import PaginationData
-from .post import Post
+from .post import Post, PaginatedPosts

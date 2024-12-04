@@ -4,6 +4,7 @@ from typing import List, Dict, Any, Optional
 from pydantic.dataclasses import dataclass, Field
 from telethon.tl.types import Message
 
+from app.schemas import PaginationData
 from core.utils import parse_message_content
 
 
@@ -49,3 +50,9 @@ class Post:
             original_content=message.message,
             parsed_content=parsed_content.to_dict(),
         )
+
+
+@dataclass
+class PaginatedPosts:
+    data: List[Post] = Field(..., description="List of posts")
+    pagination: PaginationData = Field(..., description="Pagination data")

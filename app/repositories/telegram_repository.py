@@ -4,7 +4,7 @@ from typing import List, Dict, Any, Optional
 from telethon.tl.functions.messages import GetHistoryRequest
 from telethon.tl.types import Message
 
-from app.schemas import PaginationData, Post
+from app.schemas import PaginationData, Post, PaginatedPosts
 from core import logger
 from core.cache import CacheManager
 from core.integrations import TelegramClientWrapper
@@ -32,7 +32,7 @@ class TelegramRepository:
         await self.client.disconnect()
         logger.info("Disconnected from Telegram")
 
-    async def get_history(self, pagination: PaginationData) -> List[Message]:
+    async def _get_history(self, pagination: PaginationData) -> List[Message]:
         history = await self.client(
             GetHistoryRequest(
                 peer=self.channel,
@@ -47,8 +47,8 @@ class TelegramRepository:
         )
         return history.messages
 
-    async def grouped_posts(self, pagination: PaginationData) -> Dict[str, List[Message]]:
-        history = await self.get_history(pagination)
+    async def _grouped_posts(self, pagination: PaginationData) -> Dict[str, List[Message]]:
+        history = await self._get_history(pagination)
         messages = [
             message for message in history
             if hasattr(message, "grouped_id") and message.grouped_id
@@ -63,10 +63,9 @@ class TelegramRepository:
 
         return grouped_messages
 
-    async def paginate_posts(self, pagination: PaginationData) -> Dict[str, Any]:
-        grouped_posts = await self.grouped_posts(pagination)
-
+    async def paginate_posts(self, pagination: PaginationData) -> PaginatedPosts:
         posts = []
+        grouped_posts = await self._grouped_posts(pagination)
         for group in grouped_posts.values():
             info = next(
                 (msg for msg in group if msg.__class__.__name__ == "Message" and msg.message),
@@ -75,13 +74,8 @@ class TelegramRepository:
 
             if info:
                 post = Post.from_message(info)
-                posts.append(post.__dict__)
+                posts.append(post)
 
-        posts.sort(key=lambda x: x["message_id"], reverse=True)
+        posts.sort(key=lambda x: x.message_id, reverse=True)
 
-        data = {
-            "pagination": pagination.__dict__,
-            "data": posts,
-        }
-
-        return data
+        return PaginatedPosts(data=posts, pagination=pagination)
