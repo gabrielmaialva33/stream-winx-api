@@ -29,10 +29,8 @@ info:
     name: MIT
     url: https://opensource.org/licenses/MIT
 servers:
-  - url: http://localhost:3333
+  - url: http://localhost:8000
     description: Local server
-  - url: https://dev.cinewinx.com.br
-    description: Development server
 tags:
   - name: Session
     description: Operations related to sessions
@@ -86,6 +84,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Post'
+
   /api/v1/movies/videos:
     get:
       summary: Get Movie Video
@@ -132,7 +131,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/NotFound'
-  /api/v1/movies/{messageId}:
+
+  /api/v1/movies/{message_id}:
     get:
       summary: Get Movie
       description: Returns a movie by ID.
@@ -145,7 +145,7 @@ paths:
           schema:
             type: string
             example: application/json
-        - name: messageId
+        - name: message_id
           in: path
           required: true
           schema:
@@ -165,7 +165,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/NotFound'
-  /api/v1/movies/images:
+
+  /api/v1/movies/images/{message_id}:
     get:
       summary: Get Movie Image
       description: Returns a movie image by ID.
@@ -178,8 +179,8 @@ paths:
           schema:
             type: string
             example: application/json
-        - name: messageId
-          in: query
+        - name: message_id
+          in: path
           required: true
           schema:
             type: number
@@ -199,6 +200,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/NotFound'
+
 components:
   securitySchemes:
     bearerToken:
