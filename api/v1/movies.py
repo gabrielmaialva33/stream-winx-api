@@ -27,8 +27,11 @@ async def image(message_id: int):
 
 
 @router.get("/movies/stream")
-async def video(document_id: int = Query(...), size: int = Query(...),
-                range_header: str | None = Header(None, alias="range"), ):
+async def video(
+    document_id: int = Query(...),
+    size: int = Query(...),
+    range_header: str | None = Header(None, alias="range"),
+):
     try:
         if not range_header:
             return StreamingResponse(
@@ -74,7 +77,9 @@ async def get(message_id: int, request: Request):
         print(f"port: {port}")
         print(f"protocol: {protocol}")
 
-        image_url = f"{protocol}://{host}:{port}/api/v1/movies/images/{data['message_id']}"
+        image_url = (
+            f"{protocol}://{host}:{port}/api/v1/movies/images/{data['message_id']}"
+        )
         video_url = f"{protocol}://{host}:{port}/api/v1/movies/stream?document_id={data['document']['id']}&size={data['document']['size']}"
 
         data["image_url"] = image_url
