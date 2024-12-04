@@ -7,10 +7,7 @@ router = APIRouter()
 
 
 @router.get("/videos")
-async def paginate(
-        limit: int = 10,
-        offset_id: int = 0
-):
+async def paginate(limit: int = 10, offset_id: int = 0):
     try:
         posts = await telegram_repository.list_messages(limit, offset_id)
         return JSONResponse(content=posts)
