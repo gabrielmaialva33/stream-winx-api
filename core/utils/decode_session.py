@@ -25,15 +25,15 @@ def decode_session(session_string):
     dc_id = session_bytes[0]
     offset = 1
     if len(session_bytes) == 352:  # IPv4 format
-        server_address = ".".join(map(str, session_bytes[offset: offset + 4]))
+        server_address = ".".join(map(str, session_bytes[offset : offset + 4]))
         offset += 4
     else:  # IPv6 format
-        address_length = int.from_bytes(session_bytes[offset: offset + 2], "big")
+        address_length = int.from_bytes(session_bytes[offset : offset + 2], "big")
         offset += 2
-        server_address = session_bytes[offset: offset + address_length].decode("utf-8")
+        server_address = session_bytes[offset : offset + address_length].decode("utf-8")
         offset += address_length
 
-    port = int.from_bytes(session_bytes[offset: offset + 2], "big")
+    port = int.from_bytes(session_bytes[offset : offset + 2], "big")
     offset += 2
     auth_key = session_bytes[offset:]
 

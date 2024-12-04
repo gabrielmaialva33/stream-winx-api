@@ -43,12 +43,12 @@ class MovieData:
 
 class FieldDefinition:
     def __init__(
-            self,
-            field: str,
-            labels: List[str],
-            regex: List[str],
-            process: Callable,
-            is_multiline: bool = False,
+        self,
+        field: str,
+        labels: List[str],
+        regex: List[str],
+        process: Callable,
+        is_multiline: bool = False,
     ):
         self.field = field
         self.labels = labels
