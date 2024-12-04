@@ -70,7 +70,7 @@ async def get(message_id: int, request: Request):
         data = await telegram_repository.get_post(message_id)
 
         host = request.headers["host"]
-        port = request.headers.get("x-forwarded-port", "80")
+        port = request.headers.get("x-forwarded-port", "443")
         protocol = request.url.scheme
 
         print(f"host: {host}")
