@@ -31,8 +31,15 @@ class TelegramRepository:
         """
         await self.client.disconnect()
 
-    async def get_history(self, limit: int = 100, offset_id: int = 0, offset_date=None, add_offset=0, max_id=0,
-                          min_id=0):
+    async def get_history(
+        self,
+        limit: int = 100,
+        offset_id: int = 0,
+        offset_date=None,
+        add_offset=0,
+        max_id=0,
+        min_id=0,
+    ):
         history = await self.client(
             GetHistoryRequest(
                 peer=self.channel,
@@ -66,7 +73,7 @@ class TelegramRepository:
         return grouped_messages
 
     async def list_messages(
-            self, limit: int = 10, offset_id: int = 0
+        self, limit: int = 10, offset_id: int = 0
     ) -> List[Dict[str, Any]]:
         grouped_posts = await self.grouped_posts(limit, offset_id)
 
