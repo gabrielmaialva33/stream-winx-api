@@ -18,10 +18,12 @@ class Post:
     author: Optional[str] = Field(..., description="Author of the message")
     reactions: List[Dict[str, Any]] = Field(..., description="Reactions of the message")
     original_content: str = Field(..., description="Original content of the message")
-    parsed_content: Dict[str, Any] = Field(..., description="Parsed content of the message")
+    parsed_content: Dict[str, Any] = Field(
+        ..., description="Parsed content of the message"
+    )
 
     @classmethod
-    def from_message(cls, message: Message) -> 'Post':
+    def from_message(cls, message: Message) -> "Post":
         parsed_content = parse_message_content(message.message)
 
         reactions = []
@@ -44,7 +46,11 @@ class Post:
             video_url="",
             grouped_id=message.grouped_id,
             message_id=message.id,
-            date=message.date.isoformat() if isinstance(message.date, datetime) else message.date,
+            date=(
+                message.date.isoformat()
+                if isinstance(message.date, datetime)
+                else message.date
+            ),
             author=message.post_author,
             reactions=reactions,
             original_content=message.message,

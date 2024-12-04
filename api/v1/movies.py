@@ -13,7 +13,9 @@ router = APIRouter()
 @router.get("/movies", tags=["Post"], response_model=PaginatedPosts)
 async def paginate(limit: int = 10, offset_id: int = 0):
     try:
-        pagination_data = PaginationData.from_parameters(limit=limit, offset_id=offset_id)
+        pagination_data = PaginationData.from_parameters(
+            limit=limit, offset_id=offset_id
+        )
 
         data = await telegram_repository.paginate_posts(pagination_data)
         json_data = jsonable_encoder(data)
@@ -33,9 +35,9 @@ async def image(message_id: int):
 
 @router.get("/movies/stream")
 async def video(
-        document_id: int = Query(...),
-        size: int = Query(...),
-        range_header: str | None = Header(None, alias="range"),
+    document_id: int = Query(...),
+    size: int = Query(...),
+    range_header: str | None = Header(None, alias="range"),
 ):
     try:
         if not range_header:
