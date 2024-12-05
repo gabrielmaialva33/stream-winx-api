@@ -48,10 +48,10 @@ async def image(message_id: int):
 
 @router.get("/posts/stream", tags=["Post"], response_class=StreamingResponse)
 async def stream_video(
-        message_id: int = Query(...),
-        document_id: int = Query(...),
-        size: int = Query(...),
-        range_header: str | None = Header(None, alias="range"),
+    message_id: int = Query(...),
+    document_id: int = Query(...),
+    size: int = Query(...),
+    range_header: str | None = Header(None, alias="range"),
 ):
     try:
         if not range_header:
