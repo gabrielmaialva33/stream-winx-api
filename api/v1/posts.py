@@ -10,8 +10,8 @@ from app.schemas import PaginationData, PaginatedPosts, Post
 router = APIRouter()
 
 
-@router.get("/posts", tags=["Post"], response_model=PaginatedPosts)
-async def paginate(request: Request, limit: int = 10, offset_id: int = 0):
+@router.get("/posts", tags=["Post"], response_model=PaginatedPosts, operation_id="list.posts")
+async def paginate(request: Request, limit: int = Query(10), offset_id: int = Query(0)):
     try:
         pagination_data = PaginationData.from_parameters(
             limit=limit, offset_id=offset_id

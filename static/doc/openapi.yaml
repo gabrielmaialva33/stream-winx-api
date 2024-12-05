@@ -32,18 +32,14 @@ servers:
   - url: http://localhost:8000
     description: Local server
 tags:
-  - name: Session
-    description: Operations related to sessions
-  - name: User
-    description: Operations related to users
   - name: Health
     description: Operations related to system health
-  - name: Movie
-    description: Operations related to movies
+  - name: Post
+    description: Operations related to posts
 paths:
   /health:
     get:
-      summary: System Health Check
+      summary: Health Check
       description: Returns the system health status and detailed checks.
       tags:
         - Health
@@ -64,10 +60,11 @@ paths:
 
   /api/v1/posts:
     get:
-      summary: List Movies
-      description: Returns a list of movies.
+      summary: Paginate posts
+      description: Returns a list of posts of the movies.
+      operationId: list.posts
       tags:
-        - Movie
+        - Post
       parameters:
         - name: Content-Type
           in: header
@@ -75,22 +72,39 @@ paths:
           schema:
             type: string
             example: application/json
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: number
+            example: 10
+        - name: offset_id
+          in: query
+          required: false
+          schema:
+            type: number
+            example: 0
       responses:
         '200':
           description: A list of posts of the movies.
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Post'
+                type: object
+                properties:
+                  posts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Post'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
 
   /api/v1/posts/videos:
     get:
       summary: Get Movie Video
       description: Returns a movie video by ID.
       tags:
-        - Movie
+        - Post
       parameters:
         - name: Content-Type
           in: header
@@ -137,7 +151,7 @@ paths:
       summary: Get Movie
       description: Returns a movie by ID.
       tags:
-        - Movie
+        - Post
       parameters:
         - name: Content-Type
           in: header
@@ -171,7 +185,7 @@ paths:
       summary: Get Movie Image
       description: Returns a movie image by ID.
       tags:
-        - Movie
+        - Post
       parameters:
         - name: Content-Type
           in: header
@@ -561,3 +575,47 @@ components:
           example: '📺 Fúria Sem Limites #2022y\n\nPais de Origem: Japão 🇯🇵\nDireção: #YoshikiTakahashi\nElenco: #YohtaKawase'
         parsed_content:
           $ref: '#/components/schemas/Movie'
+
+    # pagination schemas
+    Pagination:
+      type: object
+      properties:
+        total:
+          type: number
+          description: The total number of items.
+          example: 0
+        limit:
+          type: number
+          description: The limit of items per page.
+          example: 10
+        offset_id:
+          type: number
+          description: The offset ID of the items.
+          example: 0
+        offset_date:
+          type: string
+          format: date-time
+          description: The offset date of the items.
+          example: null
+        add_offset:
+          type: number
+          description: The additional offset of the items.
+          example: 0
+        max_id:
+          type: number
+          description: The maximum ID of the items.
+          example: 0
+        min_id:
+          type: number
+          description: The minimum ID of the items.
+          example: 0
+      example:
+        {
+          'total': 0,
+          'limit': 10,
+          'offset_id': 0,
+          'offset_date': null,
+          'add_offset': 0,
+          'max_id': 0,
+          'min_id': 0,
+        }
