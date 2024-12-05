@@ -31,12 +31,15 @@ class TelegramRepository:
         await self.client.disconnect()
         logger.info("Disconnected from Telegram")
 
-    async def _get_history(self, limit: int = 10,
-                           offset_id: int = 0,
-                           offset_date: Optional[datetime] = None,
-                           add_offset: int = 0,
-                           max_id: int = 0,
-                           min_id: int = 0) -> List[Message]:
+    async def _get_history(
+        self,
+        limit: int = 10,
+        offset_id: int = 0,
+        offset_date: Optional[datetime] = None,
+        add_offset: int = 0,
+        max_id: int = 0,
+        min_id: int = 0,
+    ) -> List[Message]:
         history = await self.client(
             GetHistoryRequest(
                 peer=self.channel,
@@ -81,7 +84,9 @@ class TelegramRepository:
                 break
 
         if len(grouped_messages) > total_messages_needed:
-            grouped_messages = dict(list(grouped_messages.items())[:total_messages_needed])
+            grouped_messages = dict(
+                list(grouped_messages.items())[:total_messages_needed]
+            )
 
         return grouped_messages
 
