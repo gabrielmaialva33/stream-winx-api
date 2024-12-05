@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import List, Dict, Any, Optional
 
 from telethon.tl.functions.messages import GetHistoryRequest
@@ -30,16 +31,21 @@ class TelegramRepository:
         await self.client.disconnect()
         logger.info("Disconnected from Telegram")
 
-    async def _get_history(self, pagination: PaginationData) -> List[Message]:
+    async def _get_history(self, limit: int = 10,
+                           offset_id: int = 0,
+                           offset_date: Optional[datetime] = None,
+                           add_offset: int = 0,
+                           max_id: int = 0,
+                           min_id: int = 0) -> List[Message]:
         history = await self.client(
             GetHistoryRequest(
                 peer=self.channel,
-                limit=pagination.limit,
-                offset_id=pagination.offset_id,
-                offset_date=pagination.offset_date,
-                add_offset=pagination.add_offset,
-                max_id=pagination.max_id,
-                min_id=pagination.min_id,
+                limit=limit,
+                offset_id=offset_id,
+                offset_date=offset_date,
+                add_offset=add_offset,
+                max_id=max_id,
+                min_id=min_id,
                 hash=self.channel.access_hash,
             )
         )
@@ -48,19 +54,34 @@ class TelegramRepository:
     async def _grouped_posts(
             self, pagination: PaginationData
     ) -> Dict[str, List[Message]]:
-        history = await self._get_history(pagination)
-        messages = [
-            message
-            for message in history
-            if hasattr(message, "grouped_id") and message.grouped_id
-        ]
-
+        limit = pagination.per_page
+        offset_id = pagination.offset_id
+        total_messages_needed = limit
         grouped_messages = {}
-        for message in messages:
-            group_id = str(message.grouped_id)
-            if group_id not in grouped_messages:
-                grouped_messages[group_id] = []
-            grouped_messages[group_id].append(message)
+
+        while len(grouped_messages) < total_messages_needed:
+            current_limit = max(10, limit * 2)
+
+            history = await self._get_history(current_limit, offset_id)
+            messages = [
+                message
+                for message in history
+                if hasattr(message, "grouped_id") and message.grouped_id
+            ]
+
+            for message in messages:
+                group_id = str(message.grouped_id)
+                if group_id not in grouped_messages:
+                    grouped_messages[group_id] = []
+                grouped_messages[group_id].append(message)
+
+            if history:
+                offset_id = min(msg.id for msg in history) - 1
+            else:
+                break
+
+        if len(grouped_messages) > total_messages_needed:
+            grouped_messages = dict(list(grouped_messages.items())[:total_messages_needed])
 
         return grouped_messages
 
@@ -92,8 +113,10 @@ class TelegramRepository:
         posts.sort(key=lambda x: x.message_id, reverse=True)
 
         if posts:
+            first_post = posts[0]
             last_post = posts[-1]
             total = len(posts)
+            pagination.first_offset_id = first_post.message_id
             pagination.last_offset_id = last_post.message_id
             pagination.total = total
 

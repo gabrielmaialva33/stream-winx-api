@@ -16,10 +16,10 @@ router = APIRouter()
     operation_id="paginate.posts",
     response_model=PaginatedPosts,
 )
-async def paginate(request: Request, limit: int = Query(10), offset_id: int = Query(0)):
+async def paginate(request: Request, per_page: int = Query(10), offset_id: int = Query(0)):
     try:
         pagination_data = PaginationData.from_parameters(
-            limit=limit, offset_id=offset_id
+            per_page=per_page, offset_id=offset_id
         )
 
         data = await telegram_repository.paginate_posts(pagination_data)
@@ -61,10 +61,10 @@ async def stream_image(message_id: int):
     response_class=StreamingResponse,
 )
 async def stream_video(
-    message_id: int = Query(...),
-    document_id: int = Query(...),
-    size: int = Query(...),
-    range_header: str | None = Header(None, alias="range"),
+        message_id: int = Query(...),
+        document_id: int = Query(...),
+        size: int = Query(...),
+        range_header: str | None = Header(None, alias="range"),
 ):
     try:
         if not range_header:
