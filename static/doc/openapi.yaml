@@ -58,11 +58,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/HealthCheck'
 
+  # posts
   /api/v1/posts:
     get:
       summary: Paginate posts
       description: Returns a list of posts of the movies.
-      operationId: list.posts
+      operationId: paginate.posts
       tags:
         - Post
       parameters:
@@ -98,11 +99,11 @@ paths:
                       $ref: '#/components/schemas/Post'
                   pagination:
                     $ref: '#/components/schemas/Pagination'
-
-  /api/v1/posts/videos:
+  /api/v1/posts/images/{message_id}:
     get:
-      summary: Get Movie Video
-      description: Returns a movie video by ID.
+      summary: Get post image
+      description: Returns a stream of the image by ID.
+      operationId: get.post.image
       tags:
         - Post
       parameters:
@@ -112,7 +113,49 @@ paths:
           schema:
             type: string
             example: application/json
-        - name: documentId
+        - name: message_id
+          in: path
+          required: true
+          schema:
+            type: number
+            format: int64
+            example: 7188
+      responses:
+        '200':
+          description: The image buffer
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Image not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFound'
+  /api/v1/posts/videos:
+    get:
+      summary: Get post video
+      description: Returns a stream of the video by ID.
+      operationId: get.post.video
+      tags:
+        - Post
+      parameters:
+        - name: Content-Type
+          in: header
+          required: true
+          schema:
+            type: string
+            example: application/json
+        - name: message_id
+          in: query
+          required: true
+          schema:
+            type: number
+            format: int64
+            example: 7188
+        - name: document_id
           in: query
           required: true
           schema:
@@ -145,11 +188,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/NotFound'
-
   /api/v1/posts/{message_id}:
     get:
-      summary: Get Movie
-      description: Returns a movie by ID.
+      summary: Get post
+      description: Returns a post of the movie by ID.
+      operationId: get.post
       tags:
         - Post
       parameters:
@@ -175,41 +218,6 @@ paths:
                 $ref: '#/components/schemas/Post'
         '404':
           description: Movie not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/NotFound'
-
-  /api/v1/posts/images/{message_id}:
-    get:
-      summary: Get Movie Image
-      description: Returns a movie image by ID.
-      tags:
-        - Post
-      parameters:
-        - name: Content-Type
-          in: header
-          required: true
-          schema:
-            type: string
-            example: application/json
-        - name: message_id
-          in: path
-          required: true
-          schema:
-            type: number
-            format: int64
-            example: 7188
-      responses:
-        '200':
-          description: The image buffer
-          content:
-            image/jpeg:
-              schema:
-                type: string
-                format: binary
-        '404':
-          description: Image not found.
           content:
             application/json:
               schema:

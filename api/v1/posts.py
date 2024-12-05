@@ -11,7 +11,7 @@ router = APIRouter()
 
 
 @router.get(
-    "/posts", tags=["Post"], response_model=PaginatedPosts, operation_id="list.posts"
+    "/posts", tags=["Post"], operation_id="paginate.posts", response_model=PaginatedPosts
 )
 async def paginate(request: Request, limit: int = Query(10), offset_id: int = Query(0)):
     try:
@@ -38,22 +38,22 @@ async def paginate(request: Request, limit: int = Query(10), offset_id: int = Qu
 
 
 @router.get(
-    "/posts/images/{message_id}", tags=["Post"], response_class=StreamingResponse
+    "/posts/images/{message_id}", tags=["Post"], operation_id="get.post.image", response_class=StreamingResponse
 )
-async def image(message_id: int):
+async def stream_image(message_id: int):
     try:
-        image_bytes = await telegram_repository.get_image(int(message_id))
+        image_bytes = await telegram_repository.get_image(message_id)
         return StreamingResponse(BytesIO(image_bytes), media_type="image/jpeg")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/posts/stream", tags=["Post"], response_class=StreamingResponse)
+@router.get("/posts/stream", tags=["Post"], operation_id="get.post.video", response_class=StreamingResponse)
 async def stream_video(
-    message_id: int = Query(...),
-    document_id: int = Query(...),
-    size: int = Query(...),
-    range_header: str | None = Header(None, alias="range"),
+        message_id: int = Query(...),
+        document_id: int = Query(...),
+        size: int = Query(...),
+        range_header: str | None = Header(None, alias="range"),
 ):
     try:
         if not range_header:
@@ -87,8 +87,8 @@ async def stream_video(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/posts/{message_id}", tags=["Post"], response_model=Post)
-async def get(message_id: int, request: Request):
+@router.get("/posts/{message_id}", tags=["Post"], operation_id="get.post", response_model=Post)
+async def get(request: Request, message_id: int):
     try:
         data = await telegram_repository.get_post(message_id)
 
