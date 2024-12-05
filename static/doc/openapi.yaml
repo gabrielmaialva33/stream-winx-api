@@ -37,7 +37,7 @@ tags:
   - name: Post
     description: Operations related to posts
 paths:
-  /health:
+  /api/v1/health:
     get:
       summary: Health Check
       description: Returns the system health status and detailed checks.
@@ -56,7 +56,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HealthCheckResponse'
+                $ref: '#/components/schemas/HealthCheck'
 
   /api/v1/posts:
     get:
@@ -278,149 +278,47 @@ components:
               }
 
     # health schemas
-    HealthCheckResponse:
-      type: object
-      properties:
-        isHealthy:
-          type: boolean
-          description: Indicates if the system is healthy.
-          example: false
-        status:
-          type: string
-          description: The overall health status.
-          example: error
-        finishedAt:
-          type: string
-          format: date-time
-          description: The timestamp when the health check was completed.
-          example: 2024-11-24T20:18:20.947Z
-        debugInfo:
-          type: object
-          properties:
-            pid:
-              type: integer
-              description: Process ID of the application.
-              example: 20813
-            ppid:
-              type: integer
-              description: Parent process ID of the application.
-              example: 20810
-            platform:
-              type: string
-              description: Platform on which the application is running.
-              example: darwin
-            uptime:
-              type: number
-              description: Uptime of the application in seconds.
-              example: 3.838426084
-            version:
-              type: string
-              description: Application version.
-              example: v22.11.0
-        checks:
-          type: array
-          items:
-            $ref: '#/components/schemas/HealthCheck'
     HealthCheck:
       type: object
       properties:
-        name:
-          type: string
-          description: The name of the health check.
-          example: Disk space check
-        isCached:
+        is_healthy:
           type: boolean
-          description: Indicates if the result is cached.
-          example: false
-        message:
-          type: string
-          description: Message describing the health check result.
-          example: Disk usage is under defined thresholds
-        status:
-          type: string
-          description: Status of the health check.
-          enum:
-            - ok
-            - warning
-            - error
-          example: ok
-        finishedAt:
-          type: string
-          format: date-time
-          description: The timestamp when the check was completed.
-          example: 2024-11-24T20:18:20.947Z
-        meta:
+          description: The health status of the system.
+          example: true
+        debug_info:
           type: object
-          description: Additional metadata about the health check.
           properties:
-            sizeInPercentage:
-              type: object
-              nullable: true
-              properties:
-                used:
-                  type: integer
-                  description: Used disk percentage.
-                  example: 48
-                failureThreshold:
-                  type: integer
-                  description: Threshold for failure in percentage.
-                  example: 80
-                warningThreshold:
-                  type: integer
-                  description: Threshold for warnings in percentage.
-                  example: 75
-            memoryInBytes:
-              type: object
-              nullable: true
-              properties:
-                used:
-                  type: integer
-                  description: Memory used in bytes.
-                  example: 37537600
-                failureThreshold:
-                  type: integer
-                  description: Threshold for failure in bytes.
-                  example: 314572800
-                warningThreshold:
-                  type: integer
-                  description: Threshold for warnings in bytes.
-                  example: 262144000
-            error:
-              type: object
-              nullable: true
-              properties:
-                errno:
-                  type: integer
-                  description: Error number.
-                  example: -61
-                code:
-                  type: string
-                  description: Error code.
-                  example: ECONNREFUSED
-                syscall:
-                  type: string
-                  description: System call that failed.
-                  example: connect
-                address:
-                  type: string
-                  description: Address of the connection attempt.
-                  example: 127.0.0.1
-                port:
-                  type: integer
-                  description: Port of the connection attempt.
-                  example: 5432
-            connection:
-              type: object
-              nullable: true
-              properties:
-                name:
-                  type: string
-                  description: Name of the connection.
-                  example: postgres
-                dialect:
-                  type: string
-                  description: Database dialect.
-                  example: postgres
+            pid:
+              type: number
+              description: The process ID of the system.
+              example: 65779
+            ppid:
+              type: number
+              description: The parent process ID of the system.
+              example: 65773
+            sys_platform:
+              type: string
+              description: The system platform of the system.
+              example: darwin
+            uptime:
+              type: number
+              description: The uptime of the system.
+              example: 1733355008.0
+            now:
+              type: string
+              format: date-time
+              description: The current date and time of the system.
+              example: 2024-12-05T08:26:01.740752
+      example: {
+        'is_healthy': true,
+        'debug_info': {
+          'pid': 65779,
+          'ppid': 65773,
+          'sys_platform': 'darwin',
+          'uptime': 1733355008.0,
+          'now': '2024-12-05T08:26:01.740752',
+        },
+      }
 
     # movie schemas
     Movie:
@@ -592,6 +490,10 @@ components:
           type: number
           description: The offset ID of the items.
           example: 0
+        last_offset_id:
+          type: number
+          description: The last offset ID of the items.
+          example: 0
         offset_date:
           type: string
           format: date-time
@@ -614,6 +516,7 @@ components:
           'total': 0,
           'limit': 10,
           'offset_id': 0,
+          'last_offset_id': 0,
           'offset_date': null,
           'add_offset': 0,
           'max_id': 0,
