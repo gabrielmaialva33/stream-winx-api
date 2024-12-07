@@ -43,12 +43,12 @@ class MovieData:
 
 class FieldDefinition:
     def __init__(
-        self,
-        field: str,
-        labels: List[str],
-        regex: List[str],
-        process: Callable,
-        is_multiline: bool = False,
+            self,
+            field: str,
+            labels: List[str],
+            regex: List[str],
+            process: Callable,
+            is_multiline: bool = False,
     ):
         self.field = field
         self.labels = labels
@@ -59,11 +59,11 @@ class FieldDefinition:
 
 def is_emoji(character: str) -> bool:
     if (
-        unicodedata.category(character) == "So"
+            unicodedata.category(character) == "So"
     ):  # 'So' é a categoria para símbolos e outros
         return True
     if ord(character) in range(
-        0x1F1E6, 0x1F1FF
+            0x1F1E6, 0x1F1FF
     ):  # Bandera (letras A-Z e combinações de bandeiras)
         return True
     return False
@@ -237,6 +237,7 @@ def parse_message_content(content: str) -> MovieData:
         "💬",
         "#",
         "✨ Elenco:",
+        "📢"
     ]
 
     def line_starts_with_label(line: str, labels: List[str]) -> bool:
