@@ -32,13 +32,13 @@ class TelegramRepository:
         logger.info("Disconnected from Telegram")
 
     async def _get_history(
-        self,
-        limit: int = 10,
-        offset_id: int = 0,
-        offset_date: Optional[datetime] = None,
-        add_offset: int = 0,
-        max_id: int = 0,
-        min_id: int = 0,
+            self,
+            limit: int = 10,
+            offset_id: int = 0,
+            offset_date: Optional[datetime] = None,
+            add_offset: int = 0,
+            max_id: int = 0,
+            min_id: int = 0,
     ) -> List[Message]:
         history = await self.client(
             GetHistoryRequest(
@@ -55,7 +55,7 @@ class TelegramRepository:
         return history.messages
 
     async def _grouped_posts(
-        self, pagination: PaginationData
+            self, pagination: PaginationData
     ) -> Dict[str, List[Message]]:
         limit = pagination.per_page
         offset_id = pagination.offset_id
@@ -106,14 +106,18 @@ class TelegramRepository:
                 (
                     msg
                     for msg in group
-                    if msg.__class__.__name__ == "Message" and msg.media
+                    if msg.__class__.__name__ == "Message" and msg.media is not None
                 ),
                 None,
             )
 
             if info:
-                post = Post.from_messages([info, media])
-                posts.append(post)
+                # check if the message has a media file
+                if media:
+                    post = Post.from_messages([info, media])
+                    posts.append(post)
+                # post = Post.from_messages([info, media])
+                # posts.append(post)
 
         posts.sort(key=lambda x: x.message_id, reverse=True)
 
@@ -167,12 +171,12 @@ class TelegramRepository:
             cache.set(document_id, document)
 
         async for chunk in self.client.iter_download(
-            document,
-            offset=start,
-            limit=end - start + 1,
-            chunk_size=1024 * 1024,
-            stride=1024 * 1024,
-            dc_id=document.dc_id,
-            file_size=document.size,
+                document,
+                offset=start,
+                limit=end - start + 1,
+                chunk_size=1024 * 1024,
+                stride=1024 * 1024,
+                dc_id=document.dc_id,
+                file_size=document.size,
         ):
             yield chunk

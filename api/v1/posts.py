@@ -39,6 +39,9 @@ async def paginate(
         json_data = jsonable_encoder(data)
         return JSONResponse(json_data)
     except Exception as e:
+        print(e)
+        print(e.__class__)
+        print(e.with_traceback())
         raise HTTPException(status_code=500, detail=str(e))
 
 

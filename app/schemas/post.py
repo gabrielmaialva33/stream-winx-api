@@ -70,7 +70,11 @@ class Post:
     def from_messages(cls, messages: List[Message]) -> "Post":
         info_message = next((msg for msg in messages if msg.message), None)
         media_message = next(
-            (msg for msg in messages if msg.media and hasattr(msg.media, "document")),
+            (
+                msg
+                for msg in messages
+                if msg.media is not None and hasattr(msg.media, "document")
+            ),
             None,
         )
 
@@ -91,11 +95,20 @@ class Post:
                 if hasattr(result.reaction, "emoticon")
             ]
 
-        document = media_message.media.document
+        # document = media_message.media.document
+        #
+        # document_cache = cache.get(document.id)
+        # if not document_cache:
+        #     cache.set(document.id, document)
 
-        document_cache = cache.get(document.id)
-        if not document_cache:
-            cache.set(document.id, document)
+        if media_message and media_message.media and hasattr(media_message.media, "document"):
+            document = media_message.media.document
+
+            document_cache = cache.get(document.id)
+            if not document_cache:
+                cache.set(document.id, document)
+        else:
+            document = None
 
         return cls(
             image_url="",  # Atualize se necessário
