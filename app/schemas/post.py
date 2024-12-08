@@ -101,7 +101,11 @@ class Post:
         # if not document_cache:
         #     cache.set(document.id, document)
 
-        if media_message and media_message.media and hasattr(media_message.media, "document"):
+        if (
+            media_message
+            and media_message.media
+            and hasattr(media_message.media, "document")
+        ):
             document = media_message.media.document
 
             document_cache = cache.get(document.id)
