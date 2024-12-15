@@ -99,6 +99,52 @@ paths:
                       $ref: '#/components/schemas/Post'
                   pagination:
                     $ref: '#/components/schemas/Pagination'
+  /api/v1/posts/search:
+    get:
+      summary: Search posts
+      description: Returns a list of posts of the movies by search query.
+      operationId: search.posts
+      tags:
+        - Post
+      parameters:
+        - name: Content-Type
+          in: header
+          required: true
+          schema:
+            type: string
+            example: application/json
+        - name: search
+          in: query
+          required: true
+          schema:
+            type: string
+            example: Sem Limites
+        - name: per_page
+          in: query
+          required: false
+          schema:
+            type: number
+            example: 10
+        - name: offset_id
+          in: query
+          required: false
+          schema:
+            type: number
+            example: 0
+      responses:
+        '200':
+          description: A list of posts of the movies.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  posts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Post'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
   /api/v1/posts/images/{message_id}:
     get:
       summary: Get post image
