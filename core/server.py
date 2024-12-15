@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import HTMLResponse
 from starlette.staticfiles import StaticFiles
 
@@ -29,6 +30,14 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
         docs_url="/docs",
         redoc_url="/redoc",
+    )
+
+    app_.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],  # Aqui você pode especificar as origens permitidas, como ["http://localhost:3000"]
+        allow_credentials=True,  # Permitir envio de cookies e headers de autenticação
+        allow_methods=["*"],  # Permitir todos os métodos HTTP, como GET, POST, PUT
+        allow_headers=["*"],  # Permitir todos os headers
     )
 
     init_routers(app_)
