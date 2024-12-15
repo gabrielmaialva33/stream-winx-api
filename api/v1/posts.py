@@ -17,11 +17,12 @@ router = APIRouter()
     response_model=PaginatedPosts,
 )
 async def paginate(
-    request: Request, per_page: int = Query(10), offset_id: int = Query(0)
+        request: Request, per_page: int = Query(10), offset_id: int = Query(0),
+        search: str = Query(None)
 ):
     try:
         pagination_data = PaginationData.from_parameters(
-            per_page=per_page, offset_id=offset_id
+            per_page=per_page, offset_id=offset_id, search=search
         )
 
         data = await telegram_repository.paginate_posts(pagination_data)
@@ -66,10 +67,10 @@ async def stream_image(message_id: int):
     response_class=StreamingResponse,
 )
 async def stream_video(
-    message_id: int = Query(...),
-    document_id: int = Query(...),
-    size: int = Query(...),
-    range_header: str | None = Header(None, alias="range"),
+        message_id: int = Query(...),
+        document_id: int = Query(...),
+        size: int = Query(...),
+        range_header: str | None = Header(None, alias="range"),
 ):
     try:
         if not range_header:
@@ -99,6 +100,37 @@ async def stream_video(
                 "Accept-Ranges": "bytes",
             },
         )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get(
+    "/posts/search",
+    tags=["Post"],
+    operation_id="search.posts",
+    response_model=PaginatedPosts,
+)
+async def search_posts(
+        request: Request, search: str = Query(None), per_page: int = Query(10), offset_id: int = Query(0)
+):
+    try:
+        pagination_data = PaginationData.from_parameters(
+            per_page=per_page, offset_id=offset_id, search=search
+        )
+        data = await telegram_repository.paginate_with_search(pagination_data)
+
+        host = request.headers["host"]
+        protocol = request.url.scheme
+
+        for post in data.data:
+            image_url = f"{protocol}://{host}/api/v1/posts/images/{post.message_id}"
+            video_url = f"{protocol}://{host}/api/v1/posts/stream?document_id={post.document_id}&size={post.document_size}&message_id={post.message_document_id}"
+
+            post.image_url = image_url
+            post.video_url = video_url
+
+        json_data = jsonable_encoder(data)
+        return JSONResponse(json_data)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

@@ -16,6 +16,7 @@ class PaginationData:
     add_offset: int = Field(0, description="Add offset")
     max_id: int = Field(0, description="Max ID")
     min_id: int = Field(0, description="Min ID")
+    search: Optional[str] = Field(None, description="Search query")
 
     @classmethod
     def from_parameters(cls, **kwargs) -> "PaginationData":
@@ -29,4 +30,5 @@ class PaginationData:
             add_offset=kwargs.get("add_offset", 0),
             max_id=kwargs.get("max_id", 0),
             min_id=kwargs.get("min_id", 0),
+            search=kwargs.get("search"),
         )

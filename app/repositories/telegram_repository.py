@@ -32,13 +32,13 @@ class TelegramRepository:
         logger.info("Disconnected from Telegram")
 
     async def _get_history(
-        self,
-        limit: int = 10,
-        offset_id: int = 0,
-        offset_date: Optional[datetime] = None,
-        add_offset: int = 0,
-        max_id: int = 0,
-        min_id: int = 0,
+            self,
+            limit: int = 10,
+            offset_id: int = 0,
+            offset_date: Optional[datetime] = None,
+            add_offset: int = 0,
+            max_id: int = 0,
+            min_id: int = 0,
     ) -> List[Message]:
         history = await self.client(
             GetHistoryRequest(
@@ -55,7 +55,7 @@ class TelegramRepository:
         return history.messages
 
     async def _grouped_posts(
-        self, pagination: PaginationData
+            self, pagination: PaginationData
     ) -> Dict[str, List[Message]]:
         limit = pagination.per_page
         offset_id = pagination.offset_id
@@ -171,12 +171,65 @@ class TelegramRepository:
             cache.set(document_id, document)
 
         async for chunk in self.client.iter_download(
-            document,
-            offset=start,
-            limit=end - start + 1,
-            chunk_size=1024 * 1024,
-            stride=1024 * 1024,
-            dc_id=document.dc_id,
-            file_size=document.size,
+                document,
+                offset=start,
+                limit=end - start + 1,
+                chunk_size=1024 * 1024,
+                stride=1024 * 1024,
+                dc_id=document.dc_id,
+                file_size=document.size,
         ):
             yield chunk
+
+    async def paginate_with_search(self, pagination: PaginationData) -> PaginatedPosts:
+        posts: List[Post] = []
+        grouped_messages = {}
+        limit = pagination.per_page
+        search_query = pagination.search
+        offset_id = pagination.offset_id
+
+        async for message in self.client.iter_messages(
+                self.channel, search=search_query, reverse=False, offset_id=offset_id
+        ):
+            if hasattr(message, "grouped_id") and message.grouped_id:
+                group_id = str(message.grouped_id)
+                if group_id not in grouped_messages:
+                    grouped_messages[group_id] = []
+                grouped_messages[group_id].append(message)
+
+                if len(grouped_messages) >= limit:  # Parar ao atingir o limite
+                    break
+
+        for group in grouped_messages.values():
+            info = next(
+                (
+                    msg
+                    for msg in group
+                    if msg.__class__.__name__ == "Message" and msg.message
+                ),
+                None,
+            )
+            media = next(
+                (
+                    msg
+                    for msg in group
+                    if msg.__class__.__name__ == "Message" and msg.media is not None
+                ),
+                None,
+            )
+            if info:
+                if media:
+                    post = Post.from_messages([info, media])
+                    posts.append(post)
+
+        posts.sort(key=lambda x: x.message_id, reverse=True)
+
+        if posts:
+            first_post = posts[0]
+            last_post = posts[-1]
+            total = len(posts)
+            pagination.first_offset_id = first_post.message_id
+            pagination.last_offset_id = last_post.message_id
+            pagination.total = total
+
+        return PaginatedPosts(data=posts, pagination=pagination)
