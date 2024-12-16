@@ -17,10 +17,10 @@ router = APIRouter()
     response_model=PaginatedPosts,
 )
 async def paginate(
-    request: Request,
-    per_page: int = Query(10),
-    offset_id: int = Query(0),
-    search: str = Query(None),
+        request: Request,
+        per_page: int = Query(10),
+        offset_id: int = Query(0),
+        search: str = Query(None),
 ):
     try:
         pagination_data = PaginationData.from_parameters(
@@ -69,10 +69,10 @@ async def stream_image(message_id: int):
     response_class=StreamingResponse,
 )
 async def stream_video(
-    message_id: int = Query(...),
-    document_id: int = Query(...),
-    size: int = Query(...),
-    range_header: str | None = Header(None, alias="range"),
+        message_id: int = Query(...),
+        document_id: int = Query(...),
+        size: int = Query(...),
+        range_header: str | None = Header(None, alias="range"),
 ):
     try:
         if not range_header:
@@ -113,10 +113,10 @@ async def stream_video(
     response_model=PaginatedPosts,
 )
 async def search_posts(
-    request: Request,
-    search: str = Query(None),
-    per_page: int = Query(10),
-    offset_id: int = Query(0),
+        request: Request,
+        search: str = Query(None),
+        per_page: int = Query(10),
+        offset_id: int = Query(0),
 ):
     try:
         pagination_data = PaginationData.from_parameters(
@@ -136,6 +136,34 @@ async def search_posts(
 
         json_data = jsonable_encoder(data)
         return JSONResponse(json_data)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get(
+    "/top/post",
+    tags=["Post"],
+    operation_id="get.top.post",
+    response_model=Post,
+)
+async def get_top_post(
+        request: Request,
+):
+    try:
+        post = await telegram_repository.get_top_post()
+
+        host = request.headers["host"]
+        protocol = request.url.scheme
+
+        image_url = f"{protocol}://{host}/api/v1/posts/images/{post.message_id}"
+        video_url = f"{protocol}://{host}/api/v1/posts/stream?document_id={post.document_id}&size={post.document_size}&message_id={post.message_document_id}"
+
+        post.image_url = image_url
+        post.video_url = video_url
+
+        if not post:
+            raise HTTPException(status_code=404, detail="Nenhum post encontrado.")
+        return post
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

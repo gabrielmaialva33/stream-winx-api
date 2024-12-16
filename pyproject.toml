@@ -15,6 +15,8 @@ python-dotenv = "^1.0.1"
 pydantic = "^2.10.3"
 psutil = "^6.1.0"
 locust = "^2.32.4"
+openai = "^1.57.4"
+requests = "^2.32.3"
 
 
 [tool.poetry.group.dev.dependencies]

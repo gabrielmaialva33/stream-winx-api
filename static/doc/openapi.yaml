@@ -268,6 +268,33 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/NotFound'
+  /api/v1/top/post:
+    get:
+      summary: Get top post
+      description: Returns the top post of the movie.
+      operationId: get.top.post
+      tags:
+        - Post
+      parameters:
+        - name: Content-Type
+          in: header
+          required: true
+          schema:
+            type: string
+            example: application/json
+      responses:
+        '200':
+          description: The top post of the movie.
+          content:
+            application/json:
+            schema:
+              $ref: '#/components/schemas/Post'
+        '404':
+          description: Movie not found.
+          content:
+            application/json:
+            schema:
+              $ref: '#/components/schemas/NotFound'
 
 components:
   securitySchemes:

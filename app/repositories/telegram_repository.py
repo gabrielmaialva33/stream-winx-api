@@ -32,13 +32,13 @@ class TelegramRepository:
         logger.info("Disconnected from Telegram")
 
     async def _get_history(
-        self,
-        limit: int = 10,
-        offset_id: int = 0,
-        offset_date: Optional[datetime] = None,
-        add_offset: int = 0,
-        max_id: int = 0,
-        min_id: int = 0,
+            self,
+            limit: int = 10,
+            offset_id: int = 0,
+            offset_date: Optional[datetime] = None,
+            add_offset: int = 0,
+            max_id: int = 0,
+            min_id: int = 0,
     ) -> List[Message]:
         history = await self.client(
             GetHistoryRequest(
@@ -55,7 +55,7 @@ class TelegramRepository:
         return history.messages
 
     async def _grouped_posts(
-        self, pagination: PaginationData
+            self, pagination: PaginationData
     ) -> Dict[str, List[Message]]:
         limit = pagination.per_page
         offset_id = pagination.offset_id
@@ -171,13 +171,13 @@ class TelegramRepository:
             cache.set(document_id, document)
 
         async for chunk in self.client.iter_download(
-            document,
-            offset=start,
-            limit=end - start + 1,
-            chunk_size=1024 * 1024,
-            stride=1024 * 1024,
-            dc_id=document.dc_id,
-            file_size=document.size,
+                document,
+                offset=start,
+                limit=end - start + 1,
+                chunk_size=1024 * 1024,
+                stride=1024 * 1024,
+                dc_id=document.dc_id,
+                file_size=document.size,
         ):
             yield chunk
 
@@ -189,7 +189,7 @@ class TelegramRepository:
         offset_id = pagination.offset_id
 
         async for message in self.client.iter_messages(
-            self.channel, search=search_query, reverse=False, offset_id=offset_id
+                self.channel, search=search_query, reverse=False, offset_id=offset_id
         ):
             if hasattr(message, "grouped_id") and message.grouped_id:
                 group_id = str(message.grouped_id)
@@ -233,3 +233,28 @@ class TelegramRepository:
             pagination.total = total
 
         return PaginatedPosts(data=posts, pagination=pagination)
+
+    async def get_top_post(self) -> Optional[Post]:
+
+        limit = 100
+        offset_id = 0
+        posts = []
+
+        while True:
+            pagination = PaginationData.from_parameters(
+                per_page=limit, offset_id=offset_id
+            )
+            paginated_posts = await self.paginate_posts(pagination)
+
+            if not paginated_posts.data:
+                break
+
+            posts.extend(paginated_posts.data)
+            offset_id = pagination.last_offset_id
+
+            if len(posts) >= limit:
+                break
+
+        top_post = max(posts, key=lambda post: sum(reaction["count"] for reaction in post.reactions), default=None)
+
+        return top_post
