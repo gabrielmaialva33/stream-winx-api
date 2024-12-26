@@ -43,12 +43,12 @@ class MovieData:
 
 class FieldDefinition:
     def __init__(
-        self,
-        field: str,
-        labels: List[str],
-        regex: List[str],
-        process: Callable,
-        is_multiline: bool = False,
+            self,
+            field: str,
+            labels: List[str],
+            regex: List[str],
+            process: Callable,
+            is_multiline: bool = False,
     ):
         self.field = field
         self.labels = labels
@@ -59,20 +59,30 @@ class FieldDefinition:
 
 def is_emoji(character: str) -> bool:
     if (
-        unicodedata.category(character) == "So"
+            unicodedata.category(character) == "So"
     ):  # 'So' é a categoria para símbolos e outros
         return True
     if ord(character) in range(
-        0x1F1E6, 0x1F1FF
+            0x1F1E6, 0x1F1FF
     ):  # Bandera (letras A-Z e combinações de bandeiras)
         return True
     return False
 
 
 def process_title(match, data, buffer=None):
-    data.title = match.group(1).strip()
-    if match.group(2):
-        data.release_date = match.group(2)
+    full_title = match.group(1).strip()
+    year = match.group(2)
+
+    if "#" in full_title:
+        title_parts = full_title.split("#")
+        data.title = title_parts[0].strip()
+        if len(title_parts) > 1 and not year:
+            extracted_year = title_parts[1].strip()
+            data.release_date = re.sub(r"[^\d]", "", extracted_year)
+    else:
+        data.title = full_title
+    if year:
+        data.release_date = re.sub(r"[^\d]", "", year)
 
 
 def process_country_of_origin(match, data, buffer=None):
@@ -155,7 +165,9 @@ field_definitions = [
     FieldDefinition(
         "title",
         ["📺", "Título:"],
-        [r"^.*?(?:📺|Título:)\s*(.*?)(?:\s*[-—:]?\s*#(\d{4})y?)?$"],
+        [
+            r"^.*?(?:📺|Título:)\s*(.*?)(?:\s*[-—:]?\s*#(\d{4}y?)?.*?)?$",
+        ],
         process_title,
     ),
     FieldDefinition(
