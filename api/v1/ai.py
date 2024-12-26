@@ -9,10 +9,9 @@ router = APIRouter()
     "/ai",
     tags=["Post"],
     operation_id="ai",
-
 )
 async def paginate(
-        request: Request,
+    request: Request,
 ):
     try:
         chat = get_chat_response("qual o melhor filme? ")
